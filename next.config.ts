@@ -1,9 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
-    dangerouslyAllowLocalIP: true,
     remotePatterns: [
       {
         protocol: "http",
@@ -12,8 +10,8 @@ const nextConfig: NextConfig = {
         pathname: "/uploads/**",
       },
       {
-        protocol: "http",
-        hostname: "unsplash.com",
+        protocol: "https",
+        hostname: "images.unsplash.com",
       },
     ],
   },

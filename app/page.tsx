@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import LoginForm from "./(auth)/_componets/LoginForm";
+import OnboardingPage from "./onboarding/page";
 
 export default function Home() {
   const { isAuthenticated, user, loading } = useAuth();
@@ -30,7 +31,7 @@ export default function Home() {
  if (!loading && !isAuthenticated) {
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <LoginForm />
+      <OnboardingPage />
     </div>
   );
 }

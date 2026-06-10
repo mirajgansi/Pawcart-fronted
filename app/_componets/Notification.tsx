@@ -107,39 +107,39 @@ export default function NotificationBell({
     setItems(listRes.items ?? []);
   };
 
-  useEffect(() => {
-    if (!userId) return;
+//   useEffect(() => {
+//     if (!userId) return;
 
-    socket.emit("join", userId);
+//     socket.emit("join", userId);
 
-    startTransition(() => {
-      (async () => {
-        try {
-          await refresh();
-        } catch {}
-      })();
-    });
+//     startTransition(() => {
+//       (async () => {
+//         try {
+//           await refresh();
+//         } catch {}
+//       })();
+//     });
 
-   const onNotif = (n: Notif) => {
-  setItems((prev) => [n, ...prev]);
-  setUnread((u) => u + 1);
+//    const onNotif = (n: Notif) => {
+//   setItems((prev) => [n, ...prev]);
+//   setUnread((u) => u + 1);
 
-  toast(n.title, {
-    description: n.message,
-    action: {
-      label: "Open",
-      onClick: () => router.push(resolveNotifUrl(n, role)),
-    },
-  });
-};
+//   toast(n.title, {
+//     description: n.message,
+//     action: {
+//       label: "Open",
+//       onClick: () => router.push(resolveNotifUrl(n, role)),
+//     },
+//   });
+// };
 
-    socket.on("notification", onNotif);
+//     socket.on("notification", onNotif);
 
-    return () => {
-      socket.off("notification", onNotif);
-    };
-    // role is not needed here; only userId changes room
-  }, [userId]);
+//     return () => {
+//       socket.off("notification", onNotif);
+//     };
+//     // role is not needed here; only userId changes room
+//   }, [userId]);
 
   const handleClickNotif = (n: Notif) => {
     startTransition(async () => {

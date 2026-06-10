@@ -35,7 +35,7 @@ export default function Header() {
             </Sheet>
           </div>
 
-          <div className="text-xl font-bold text-green-600">Click Shop</div>
+          <div className="text-xl font-bold text-green-600">PawCart</div>
         </div>
 
         {/* Desktop nav */}
