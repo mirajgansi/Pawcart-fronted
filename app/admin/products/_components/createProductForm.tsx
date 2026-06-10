@@ -19,6 +19,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { PET_CATEGORIES, PetCategorySlug, PRODUCT_CATEGORIES, ProductCategorySlug } from "@/lib/categories";
+import { FormSelect } from "@/app/_componets/dropdown";
 
 /** ---------------- helpers ---------------- */
 type ActionResponse =
@@ -55,13 +57,8 @@ function normalizeActionResponse(res: any): ActionResponse {
 type WizardData = ProductData
 const stepFields: Record<number, (keyof WizardData)[]> = {
   1: ["name", "image", "description"],
-  2: [ "price", "inStock", "category"],
-  3: [
-    "manufacturer",
-    "manufactureDate",
-    "expireDate",
-    "nutritionalInfo",
-  ],
+  2: ["price", "inStock", "category", "productCategory"],
+  3: ["manufacturer"], // ← only this; rest validated on submit
 };
 
 export default function CreateProductWizard() {
@@ -75,7 +72,9 @@ export default function CreateProductWizard() {
 
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [categoryOpen, setCategoryOpen] = useState(false);
+const [categoryOpen, setCategoryOpen] = useState(false);
+const [productCategoryOpen, setProductCategoryOpen] = useState(false); // add this
+
 
   const {
     register,
@@ -98,6 +97,7 @@ export default function CreateProductWizard() {
 const [pageLoading, setPageLoading] = useState(true);
 
   const selectedCategory = watch("category");
+  const selectedProductCategory = watch("productCategory");
 
   const clearImage = (onChange?: (file: File | undefined) => void) => {
     setPreviewImage(null);
@@ -176,7 +176,7 @@ console.log("schema.ts loaded (CreateProductWizard)");
               data.expireDate
             );
           }
-      formData.append("nutritionalInfo", data.nutritionalInfo);
+      formData.append("nutritionalInfo", data.nutritionalInfo || "");
       formData.append("category", data.category);
       formData.append("inStock", String(data.inStock ?? 0));
 
@@ -394,146 +394,269 @@ if (pageLoading) return <CreateProductStep1Skeleton />;
 
             {/* Category modal picker */}
           <div className="space-y-2">
-  <label className="text-sm font-medium">Category</label>
+  <label className="text-sm font-medium">Product Category</label>
+  <input type="hidden" {...register("productCategory")} />
+  <button
+    type="button"
+    onClick={() => setProductCategoryOpen(true)}  
+    className="h-10 w-full rounded-md border border-black/10 px-3 text-left text-sm outline-none hover:bg-black/5"
+  >
+    {selectedProductCategory ? selectedProductCategory : "Select product category"}
+  </button>
+  {errors.productCategory?.message && (
+    <p className="text-xs text-red-600">{errors.productCategory.message}</p>
+  )}
+</div>
 
+<div className="space-y-2">
+  <label className="text-sm font-medium">Pet Category</label>
   <input type="hidden" {...register("category")} />
-
   <button
     type="button"
     onClick={() => setCategoryOpen(true)}
     className="h-10 w-full rounded-md border border-black/10 px-3 text-left text-sm outline-none hover:bg-black/5"
   >
-    {selectedCategory ? selectedCategory : "Select category"}
+    {selectedCategory ? selectedCategory : "Select pet category"}
   </button>
-
   {errors.category?.message && (
     <p className="text-xs text-red-600">{errors.category.message}</p>
   )}
-
-  <CategoryModal
-    open={categoryOpen}
-    onClose={() => setCategoryOpen(false)}
-    selected={selectedCategory}
-    onSave={(value) => {
-  console.log("CATEGORY SAVED:", value);
-  setValue("category", value as any, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
-}}
-  />
+<CategoryModal
+  categories={PRODUCT_CATEGORIES}
+  title="Select product type"
+  open={productCategoryOpen}
+  onClose={() => setProductCategoryOpen(false)}
+  selected={selectedProductCategory}
+  onSave={(value) => setValue("productCategory", value as ProductCategorySlug, { shouldValidate: true })}
+/>
+<CategoryModal
+  categories={PET_CATEGORIES}
+  title="Select pet category"
+  open={categoryOpen}
+  onClose={() => setCategoryOpen(false)}
+  selected={selectedCategory}
+  onSave={(value) => setValue("category", value as PetCategorySlug, { shouldValidate: true })}
+/>
 </div>
 
           </motion.div>
         )}
 
         {/* STEP 3 */}
-        {step === 3 && (
-          <motion.div
-            key="step3"
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -30 }}
-            transition={{ duration: 0.25 }}
-            className="space-y-4"
-          >
-            {/* Manufacturer */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Manufacturer</label>
-              <input
-                type="text"
-                className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40"
-                {...register("manufacturer")}
-              />
-              {errors.manufacturer?.message && (
-                <p className="text-xs text-red-600">{errors.manufacturer.message}</p>
-              )}
-            </div>
+     {/* STEP 3 */}
+{step === 3 && (
+  <motion.div
+    key="step3"
+    initial={{ opacity: 0, x: 30 }}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: -30 }}
+    transition={{ duration: 0.25 }}
+    className="space-y-4"
+  >
+    {/* Manufacturer — always shown */}
+    <div className="space-y-1">
+      <label className="text-sm font-medium">Manufacturer</label>
+      <input
+        type="text"
+        className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40"
+        {...register("manufacturer")}
+      />
+      {errors.manufacturer?.message && (
+        <p className="text-xs text-red-600">{errors.manufacturer.message}</p>
+      )}
+    </div>
 
-            {/* Dates */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    {/* No product category selected yet */}
+    {!selectedProductCategory && (
+      <p className="rounded-md bg-yellow-50 px-4 py-3 text-sm text-yellow-700">
+        ⚠️ Please go back and select a product category first.
+      </p>
+    )}
+
+    {/* ── FOOD ── */}
+    {selectedProductCategory === "food" && (
+      <>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Nutritional Info</label>
+          <input
+            type="text"
+            className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40"
+            {...register("nutritionalInfo")}
+          />
+          {(errors as any).nutritionalInfo?.message && (
+            <p className="text-xs text-red-600">{(errors as any).nutritionalInfo.message}</p>
+          )}
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="space-y-1">
-  <label className="text-sm font-medium">Manufacture Date</label>
+            <label className="text-sm font-medium">Manufacture Date</label>
+            <Controller control={control} name={"manufactureDate" as any} render={({ field }) => (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="h-10 w-full justify-start text-left font-normal">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {field.value ? format(new Date(field.value), "PPP") : <span className="text-muted-foreground">Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar mode="single" selected={field.value ? new Date(field.value) : undefined} onSelect={(d) => field.onChange(d ? d.toISOString() : null)} initialFocus />
+                </PopoverContent>
+              </Popover>
+            )} />
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Expire Date</label>
+            <Controller control={control} name={"expireDate" as any} render={({ field }) => (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="h-10 w-full justify-start text-left font-normal">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {field.value ? format(new Date(field.value), "PPP") : <span className="text-muted-foreground">Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar mode="single" selected={field.value ? new Date(field.value) : undefined} onSelect={(d) => field.onChange(d ? d.toISOString() : null)} initialFocus />
+                </PopoverContent>
+              </Popover>
+            )} />
+          </div>
+        </div>
+      </>
+    )}
 
- <Controller
-  control={control}
-  name="manufactureDate"
-  render={({ field }) => (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" className="h-10 w-full justify-start text-left font-normal">
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {field.value ? format(new Date(field.value), "PPP") : <span className="text-muted-foreground">Pick a date</span>}
-        </Button>
-      </PopoverTrigger>
-
-      <PopoverContent className="w-auto p-0">
-        <Calendar
-          mode="single"
-          selected={field.value ? new Date(field.value) : undefined}
-          onSelect={(date) => field.onChange(date ? date.toISOString() : null)}
-          initialFocus
-        />
-      </PopoverContent>
-    </Popover>
-  )}
+    {/* ── ACCESSORIES or TOYS ── */}
+    {(selectedProductCategory === "accessories" || selectedProductCategory === "toys") && (
+      <>
+        {/* Pattern */}
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Pattern</label>
+          <FormSelect
+  control={control as any}
+  name={"pattern" as any}
+  label="Pattern"
+  placeholder="Select pattern"
+  options={(selectedProductCategory === "accessories"
+    ? ["solid","striped","plaid","floral","polka-dot","geometric","camouflage","tie-dye"]
+    : ["solid","striped","spotted","printed","multi-color"]
+  ).map((p) => ({ value: p, label: p }))}
+  error={(errors as any).pattern?.message}
 />
+        </div>
 
-  {errors.manufactureDate?.message && (
-    <p className="text-xs text-red-600">
-      {errors.manufactureDate.message}
-    </p>
-  )}
-</div>
+        {/* Colors */}
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Colors</label>
+          <Controller control={control} name={"colors" as any} render={({ field }) => (
+            <div className="flex flex-wrap gap-2">
+              {["red","blue","orange","black","pink","green","yellow","purple","white","brown"].map((color) => {
+                const selected = (field.value ?? []).includes(color);
+                return (
+                  <button key={color} type="button"
+                    onClick={() => {
+                      const current = field.value ?? [];
+                      field.onChange(selected ? current.filter((c: string) => c !== color) : [...current, color]);
+                    }}
+                    className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors ${selected ? "border-green-600 bg-green-600 text-white" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}
+                  >
+                    {color}
+                  </button>
+                );
+              })}
+            </div>
+          )} />
+          {(errors as any).colors?.message && <p className="text-xs text-red-600">{(errors as any).colors.message}</p>}
+        </div>
 
-              <div className="space-y-1">
-  <label className="text-sm font-medium">Expire Date</label>
-
-<Controller
-  control={control}
-  name="expireDate"
-  render={({ field }) => (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" className="h-10 w-full justify-start text-left font-normal">
-          <CalendarIcon className="mr-2 h-4 w-4" />
-          {field.value ? format(new Date(field.value), "PPP") : <span className="text-muted-foreground">Pick a date</span>}
-        </Button>
-      </PopoverTrigger>
-
-      <PopoverContent className="w-auto p-0">
-        <Calendar
-          mode="single"
-          selected={field.value ? new Date(field.value) : undefined}
-          onSelect={(date) => field.onChange(date ? date.toISOString() : null)}
-          initialFocus
-        />
-      </PopoverContent>
-    </Popover>
-  )}
+        {/* Material */}
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Material</label>
+   <FormSelect
+  control={control as any}
+  name={"material" as any}
+  label="Material"
+  placeholder="Select material"
+  options={(selectedProductCategory === "accessories"
+    ? ["nylon","leather","cotton","polyester","rubber","metal"]
+    : ["nylon","rubber","plush","rope","latex","plastic"]
+  ).map((m) => ({ value: m, label: m }))}
+  error={(errors as any).material?.message}
 />
-  {errors.expireDate?.message && (
-    <p className="text-xs text-red-600">
-      {errors.expireDate.message}
-    </p>
-  )}
-</div>
+        </div>
 
+        {/* Size */}
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Size</label>
+             <FormSelect
+  control={control as any}
+  name={"size" as any}
+  label="Size"
+  placeholder="Select size"
+  options={["XS","S","M","L","XL","XXL"].map((s) => ({ value: s, label: s }))}
+  error={(errors as any).size?.message}
+/>
             </div>
+      </>
+    )}
 
-            {/* Nutritional Info */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Nutritional Info</label>
-              <input
-                type="text"
-                className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40"
-                {...register("nutritionalInfo")}
-              />
-              {errors.nutritionalInfo?.message && (
-                <p className="text-xs text-red-600">{errors.nutritionalInfo.message}</p>
-              )}
-            </div>
+    {/* ── GROOMING ── */}
+    {selectedProductCategory === "grooming" && (
+      <>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Skin Type</label>
+            <select className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40" {...register("skinType" as any)}>
+              <option value="">Select skin type</option>
+              {["all","sensitive","dry","oily","normal"].map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+            {(errors as any).skinType?.message && <p className="text-xs text-red-600">{(errors as any).skinType.message}</p>}
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Coat Type</label>
+            <FormSelect
+  control={control as any}
+  name={"coatType" as any}
+  label="Coat Type"
+  placeholder="Select coat type"
+  options={["short","long","curly","double-coat","wire-haired","all"].map((c) => ({ value: c, label: c }))}
+  error={(errors as any).coatType?.message}
+/>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Scent</label>
+           <FormSelect
+  control={control as any}
+  name={"scent" as any}
+  label="Scent"
+  placeholder="Select scent"
+  options={["unscented","lavender","citrus","mint","oatmeal","coconut"].map((s) => ({ value: s, label: s }))}
+/>
+          </div>
+          <div className="space-y-1">
+            <label className="text-sm font-medium">Volume</label>
+            <select className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40" {...register("volume" as any)}>
+              <option value="">Select volume</option>
+              {["50ml","100ml","200ml","250ml","500ml","1L"].map((v) => <option key={v} value={v}>{v}</option>)}
+            </select>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <input type="checkbox" id="hypoallergenic" {...register("isHypoallergenic" as any)} className="h-4 w-4 rounded border-gray-300" />
+          <label htmlFor="hypoallergenic" className="text-sm font-medium">Hypoallergenic</label>
+        </div>
+      </>
+    )}
 
-            
-          </motion.div>
-        )}
+    {/* ── HOUSING / HEALTH-CARE ── */}
+    {(selectedProductCategory === "housing" || selectedProductCategory === "health-care") && (
+      <p className="rounded-md bg-gray-50 px-4 py-3 text-sm text-gray-500">
+        No additional attributes required for this category.
+      </p>
+    )}
+
+  </motion.div>
+)}
       </AnimatePresence>
 
       {/* Footer buttons */}

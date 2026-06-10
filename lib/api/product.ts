@@ -2,13 +2,13 @@ import axiosInstance from "./axios";
 import axios from "./axios";
 import { API } from "./endpoint";
 
+// ─── Admin CRUD ───────────────────────────────────────────────────────────────
+
 export const createProduct = async (formData: FormData) => {
   try {
     const response = await axios.post(API.PRODUCT.CREATE, formData, {
       withCredentials: true,
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      headers: { "Content-Type": "multipart/form-data" },
     });
     return response.data;
   } catch (error: any) {
@@ -18,73 +18,25 @@ export const createProduct = async (formData: FormData) => {
   }
 };
 
-export const getAllProduct = async (params?: {
-  page?: number;
-  size?: number;
-  search?: string;
-}) => {
+export const updateProduct = async (id: string, payload: FormData | any) => {
   try {
-    const response = await axios.get(API.PRODUCT.GET_ALL, {
-      params,
-    });
-    return response.data;
-  } catch (error: any) {
-    throw new Error(
-      error.response?.data?.message ||
-        error.message ||
-        "Failed to fetch products",
-    );
-  }
-};
-export const getMyFavoriteProducts = async () => {
-  const res = await axiosInstance.get(API.PRODUCT.FAVORITES_ME, {
-    withCredentials: true,
-  });
-  return res.data;
-};
-export const getProductById = async (id: string) => {
-  if (!id) throw new Error("Product id is required");
-  try {
-    const response = await axiosInstance.get(API.PRODUCT.GET_ONE(id));
-    return response.data;
-  } catch (error: any) {
-    throw new Error(
-      error.response?.data?.message ||
-        error.message ||
-        "Failed to fetch product",
-    );
-  }
-};
-
-// UPDATE PRODUCT (JSON body)
-export const updateProduct = async (id: string, payload: any) => {
-  try {
+    const isFormData = payload instanceof FormData;
     const response = await axiosInstance.put(API.PRODUCT.UPDATE(id), payload, {
+      withCredentials: true,
       headers: {
-        "Content-Type": "multipart/form-data", //for file upload/multer
+        "Content-Type": isFormData ? "multipart/form-data" : "application/json",
       },
     });
     return response.data;
-  } catch (err: Error | any) {
-    throw new Error(err.response?.data?.message || "Updating Product Failed");
-  }
-};
-
-// UPDATE PRODUCT IMAGE (multipart)
-export const updateProductImage = async (formData: FormData) => {
-  try {
-    const response = await axios.put(API.PRODUCT.UPDATE_IMAGE, formData, {
-      withCredentials: true,
-    });
-    return response.data;
   } catch (error: any) {
     throw new Error(
-      error.response?.data?.message || error.message || "Update image failed",
+      error.response?.data?.message ||
+        error.message ||
+        "Updating product failed",
     );
   }
 };
 
-// DELETE PRODUCT
 export const deleteProduct = async (id: string) => {
   try {
     const response = await axios.delete(API.PRODUCT.DELETE(id), {
@@ -98,54 +50,11 @@ export const deleteProduct = async (id: string) => {
   }
 };
 
-// FILTERS / LISTS
-export const getProductsByCategory = async (category: string) => {
-  try {
-    const response = await axios.get(API.PRODUCT.BY_CATEGORY(category));
-    return response.data;
-  } catch (error: any) {
-    throw new Error(
-      error.response?.data?.message ||
-        error.message ||
-        "Failed to fetch category products",
-    );
-  }
-};
-
-export const getRecentProducts = async (page = 1, size = 10) => {
-  const res = await axios.get(API.PRODUCT.RECENT, {
-    params: { page, size },
-  });
-  return res.data;
-};
-
-export const getTrendingProducts = async (page = 1, size = 10) => {
-  const res = await axios.get(API.PRODUCT.TRENDING, {
-    params: { page, size },
-  });
-  return res.data;
-};
-
-export const getPopularProducts = async (page = 1, size = 10) => {
-  const res = await axios.get(API.PRODUCT.POPULAR, {
-    params: { page, size },
-  });
-  return res.data;
-};
-
-export const getTopRatedProducts = async (page = 1, size = 10) => {
-  const res = await axios.get(API.PRODUCT.TOP_RATED, {
-    params: { page, size },
-  });
-  return res.data;
-};
-
 export const restockProduct = async (
   id: string,
   payload: { quantity: number; mode?: "set" | "add" },
 ) => {
   if (!id) throw new Error("Product id is required");
-
   try {
     const response = await axios.put(API.PRODUCT.RESTOCK(id), payload, {
       withCredentials: true,
@@ -158,37 +67,10 @@ export const restockProduct = async (
   }
 };
 
-export const incrementProductView = async (id: string) => {
-  if (!id) throw new Error("Product id is required");
-  try {
-    const response = await axios.patch(API.PRODUCT.INCREMENT_VIEW(id));
-    return response.data;
-  } catch (error: any) {
-    return null;
-  }
-};
+// ─── User interactions ────────────────────────────────────────────────────────
 
-export const getOutOfStockProducts = async (params?: {
-  page?: number;
-  size?: number | "all";
-  search?: string;
-  category?: string;
-}) => {
-  try {
-    const response = await axios.get(API.PRODUCT.OUT_OF_STOCK, { params });
-    return response.data;
-  } catch (error: any) {
-    throw new Error(
-      error.response?.data?.message ||
-        error.message ||
-        "Failed to fetch out of stock products",
-    );
-  }
-};
-// RATE PRODUCT
 export const rateProduct = async (id: string, payload: { rating: number }) => {
   if (!id) throw new Error("Product id is required");
-
   try {
     const response = await axiosInstance.post(API.PRODUCT.RATE(id), payload, {
       withCredentials: true,
@@ -203,7 +85,6 @@ export const rateProduct = async (id: string, payload: { rating: number }) => {
 
 export const toggleFavoriteProduct = async (id: string) => {
   if (!id) throw new Error("Product id is required");
-
   try {
     const response = await axiosInstance.post(
       API.PRODUCT.FAVORITE_TOGGLE(id),
@@ -225,7 +106,6 @@ export const addProductComment = async (
   payload: { comment: string },
 ) => {
   if (!id) throw new Error("Product id is required");
-
   try {
     const response = await axiosInstance.post(
       API.PRODUCT.ADD_COMMENT(id),
@@ -240,10 +120,8 @@ export const addProductComment = async (
   }
 };
 
-// GET PRODUCT COMMENTS
 export const getProductComments = async (id: string) => {
   if (!id) throw new Error("Product id is required");
-
   try {
     const response = await axios.get(API.PRODUCT.GET_COMMENTS(id));
     return response.data;
@@ -255,3 +133,175 @@ export const getProductComments = async (id: string) => {
     );
   }
 };
+
+export const getMyFavoriteProducts = async () => {
+  try {
+    const res = await axiosInstance.get(API.PRODUCT.FAVORITES_ME, {
+      withCredentials: true,
+    });
+    return res.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch favorites",
+    );
+  }
+};
+
+// ─── General ──────────────────────────────────────────────────────────────────
+
+export const getAllProduct = async (params?: {
+  page?: number;
+  size?: number;
+  search?: string;
+  category?: string;
+  productCategory?: string;
+}) => {
+  try {
+    const response = await axios.get(API.PRODUCT.GET_ALL, { params });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch products",
+    );
+  }
+};
+
+export const getProductById = async (id: string) => {
+  if (!id) throw new Error("Product id is required");
+  try {
+    const response = await axiosInstance.get(API.PRODUCT.GET_ONE(id));
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch product",
+    );
+  }
+};
+
+export const incrementProductView = async (id: string) => {
+  if (!id) throw new Error("Product id is required");
+  try {
+    const response = await axios.patch(API.PRODUCT.INCREMENT_VIEW(id));
+    return response.data;
+  } catch {
+    return null; // silent fail — view count is non-critical
+  }
+};
+
+// ─── Curated lists ────────────────────────────────────────────────────────────
+
+export const getRecentProducts = async (page = 1, size = 10) => {
+  try {
+    const res = await axios.get(API.PRODUCT.RECENT, { params: { page, size } });
+    return res.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch recent products",
+    );
+  }
+};
+
+export const getTrendingProducts = async (page = 1, size = 10) => {
+  try {
+    const res = await axios.get(API.PRODUCT.TRENDING, {
+      params: { page, size },
+    });
+    return res.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch trending products",
+    );
+  }
+};
+
+export const getPopularProducts = async (page = 1, size = 10) => {
+  try {
+    const res = await axios.get(API.PRODUCT.POPULAR, {
+      params: { page, size },
+    });
+    return res.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch popular products",
+    );
+  }
+};
+
+export const getTopRatedProducts = async (page = 1, size = 10) => {
+  try {
+    const res = await axios.get(API.PRODUCT.TOP_RATED, {
+      params: { page, size },
+    });
+    return res.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch top rated products",
+    );
+  }
+};
+
+export const getOutOfStockProducts = async (params?: {
+  page?: number;
+  size?: number | "all";
+  search?: string;
+  category?: string;
+}) => {
+  try {
+    const response = await axios.get(API.PRODUCT.OUT_OF_STOCK, { params });
+    return response.data;
+  } catch (error: any) {
+    throw new Error(
+      error.response?.data?.message ||
+        error.message ||
+        "Failed to fetch out of stock products",
+    );
+  }
+};
+
+// ─── Pet category fetchers ────────────────────────────────────────────────────
+
+export const getProductsByDogs = async () =>
+  (await axios.get(API.PRODUCT.BY_PET_DOGS)).data;
+export const getProductsByCats = async () =>
+  (await axios.get(API.PRODUCT.BY_PET_CATS)).data;
+export const getProductsByBirds = async () =>
+  (await axios.get(API.PRODUCT.BY_PET_BIRDS)).data;
+export const getProductsByFish = async () =>
+  (await axios.get(API.PRODUCT.BY_PET_FISH)).data;
+export const getProductsByRabbits = async () =>
+  (await axios.get(API.PRODUCT.BY_PET_RABBITS)).data;
+export const getProductsBySmallPets = async () =>
+  (await axios.get(API.PRODUCT.BY_PET_SMALL_PETS)).data;
+export const getProductsByPet = async (category: string) =>
+  (await axios.get(API.PRODUCT.BY_PET(category))).data;
+
+// ─── Product type fetchers ────────────────────────────────────────────────────
+
+export const getProductsByFood = async () =>
+  (await axios.get(API.PRODUCT.BY_TYPE_FOOD)).data;
+export const getProductsByAccessories = async () =>
+  (await axios.get(API.PRODUCT.BY_TYPE_ACCESSORIES)).data;
+export const getProductsByHousing = async () =>
+  (await axios.get(API.PRODUCT.BY_TYPE_HOUSING)).data;
+export const getProductsByGrooming = async () =>
+  (await axios.get(API.PRODUCT.BY_TYPE_GROOMING)).data;
+export const getProductsByToys = async () =>
+  (await axios.get(API.PRODUCT.BY_TYPE_TOYS)).data;
+export const getProductsByHealthCare = async () =>
+  (await axios.get(API.PRODUCT.BY_TYPE_HEALTH_CARE)).data;
+export const getProductsByType = async (productCategory: string) =>
+  (await axios.get(API.PRODUCT.BY_TYPE(productCategory))).data;

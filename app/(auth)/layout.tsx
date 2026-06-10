@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { ToastContainer } from "react-toastify";
 
 export default function AuthLayout({
@@ -6,55 +5,84 @@ export default function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const footerLinks = ["Privacy Policy", "Terms of Service", "Contact Support", "Returns"];
+
   return (
-    <div className="min-h-screen flex">
-            <div className="flex-1 relative min-h-screen hidden md:block">
-        <Image
-          src="/grocery_image.png"
-          alt="grocery"
-          fill
-          className="object-cover"
-          priority
+    <div
+      className="min-h-screen flex flex-col selection:bg-[#ffdad7] selection:text-[#410004]"
+      style={{ backgroundColor: "var(--bg-page)", fontFamily: "var(--font-body, 'Plus Jakarta Sans', sans-serif)" }}
+    >
+      {/* Background decorative blobs */}
+      <div className="fixed inset-0 overflow-hidden -z-10 opacity-30 pointer-events-none">
+        <div
+          className="absolute -top-24 -left-24 w-96 h-96 rounded-full blur-3xl"
+          style={{ backgroundColor: "var(--color-primary-100)" }}
         />
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 flex items-end px-20 pb-20">
-          <div className="text-white max-w-lg flex flex-col items-center text-center drop-shadow-2xl">
-  <h1 className="text-4xl font-bold mb-4">
-    Welcome to Click Shop
-  </h1>
-  <p className="text-2xl leading-relaxed text-white/90 ">
-    Find all your daily needs here at low prices and more
-    complete, hassle-free, and faster delivery.
-  </p>
-</div>
-        </div>
+        <div
+          className="absolute top-1/2 -right-24 w-64 h-64 rounded-full blur-3xl"
+          style={{ backgroundColor: "var(--color-tertiary-300)" }}
+        />
       </div>
 
-      {/* Left side: Auth form */}
-      <div
-        className="
-          w-full
-          max-w-lg
-          min-h-screen
-          p-6
-          bg-gradient-to-br
-          from-[#fdfefe] via-[#ffeef4] to-[#eafbf1]
-        "
+      {/* Logo header */}
+      <header className="pt-10 pb-2 text-center">
+        <h1
+          className="text-3xl font-extrabold tracking-tight"
+          style={{ color: "var(--interactive-primary)" }}
+        >
+          PawCart
+        </h1>
+        <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
+          Premium Provisions for Your Finest Friends
+        </p>
+      </header>
+
+      {/* Main content — card is rendered by each page */}
+      <main className="grow flex items-center justify-center px-4 py-10">
+        <div
+          className="w-full max-w-120 rounded-2xl p-8 md:p-10 relative overflow-hidden"
+          style={{
+            backgroundColor: "var(--bg-surface)",
+            border: "1px solid var(--border-default)",
+            boxShadow: "0 32px 64px -16px rgba(0,0,0,0.08)",
+          }}
+        >
+          {children}
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer
+        className="w-full px-8 md:px-20 py-10 flex flex-col md:flex-row justify-between items-center gap-6 rounded-t-2xl"
+        style={{ backgroundColor: "var(--color-neutral-100)" }}
       >
-        <div className="flex justify-center mb-6">
-          <Image
-            src="/cookie.jpg"
-            width={80}
-            height={80}
-            alt="Logo"
-            className="rounded-full"
-          />
+        <div className="flex flex-col items-center md:items-start gap-1">
+          <span
+            className="text-lg font-bold tracking-tight"
+            style={{ color: "var(--interactive-primary)" }}
+          >
+            PawCart
+          </span>
+          <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
+            © 2024 PawCart Premium Pet Provisions. All rights reserved.
+          </p>
         </div>
 
-        {children}
-              <ToastContainer position="top-right" autoClose={3000} />
+        <nav className="flex flex-wrap justify-center gap-6">
+          {footerLinks.map((link) => (
+            <a
+              key={link}
+              href="#"
+              className="text-xs underline underline-offset-4 transition-colors hover:opacity-80"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              {link}
+            </a>
+          ))}
+        </nav>
+      </footer>
 
-      </div>
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 }

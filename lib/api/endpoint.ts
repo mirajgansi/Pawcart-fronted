@@ -11,30 +11,52 @@ export const API = {
     DELETEME: "/api/auth/me",
   },
   PRODUCT: {
+    // ─── Admin CRUD ───────────────────────────────────────────────────────────
     CREATE: "/api/products/",
     GET_ALL: "/api/products/",
     GET_ONE: (id: string) => `/api/products/${id}`,
     UPDATE: (id: string) => `/api/products/${id}`,
     DELETE: (id: string) => `/api/products/${id}`,
-
-    UPDATE_IMAGE: "/api/products/update-image",
-
-    BY_CATEGORY: (category: string) =>
-      `/api/products/category/${encodeURIComponent(category)}`,
-
-    RECENT: "/api/products/recent",
-    TRENDING: "/api/products/trending",
-    POPULAR: "/api/products/popular",
-    TOP_RATED: "/api/products/top-rated",
-    OUT_OF_STOCK: "/api/products/out-of-stock",
-    FAVORITES_ME: "/api/products/favorites/me",
     RESTOCK: (id: string) => `/api/products/${id}/restock`,
-    INCREMENT_VIEW: (id: string) => `/api/products/${id}/view`,
 
+    // ─── User interactions ────────────────────────────────────────────────────
     RATE: (id: string) => `/api/products/${id}/rate`,
     FAVORITE_TOGGLE: (id: string) => `/api/products/${id}/favorite`,
     ADD_COMMENT: (id: string) => `/api/products/${id}/comment`,
     GET_COMMENTS: (id: string) => `/api/products/${id}/comments`,
+    FAVORITES_ME: "/api/products/favorites/me",
+
+    // ─── Curated lists ────────────────────────────────────────────────────────
+    RECENT: "/api/products/recent",
+    TRENDING: "/api/products/trending",
+    POPULAR: "/api/products/popular",
+    TOP_RATED: "/api/products/top-rated",
+
+    // ─── Admin views ──────────────────────────────────────────────────────────
+    OUT_OF_STOCK: "/api/products/out-of-stock",
+
+    // ─── Pet category routes ──────────────────────────────────────────────────
+    BY_PET_DOGS: "/api/products/pet/dogs",
+    BY_PET_CATS: "/api/products/pet/cats",
+    BY_PET_BIRDS: "/api/products/pet/birds",
+    BY_PET_FISH: "/api/products/pet/fish",
+    BY_PET_RABBITS: "/api/products/pet/rabbits",
+    BY_PET_SMALL_PETS: "/api/products/pet/small-pets",
+    BY_PET: (category: string) =>
+      `/api/products/pet/${encodeURIComponent(category)}`,
+
+    // ─── Product type/category routes ─────────────────────────────────────────
+    BY_TYPE_FOOD: "/api/products/type/food",
+    BY_TYPE_ACCESSORIES: "/api/products/type/accessories",
+    BY_TYPE_HOUSING: "/api/products/type/housing",
+    BY_TYPE_GROOMING: "/api/products/type/grooming",
+    BY_TYPE_TOYS: "/api/products/type/toys",
+    BY_TYPE_HEALTH_CARE: "/api/products/type/health-care",
+    BY_TYPE: (productCategory: string) =>
+      `/api/products/type/${encodeURIComponent(productCategory)}`,
+
+    // ─── General ──────────────────────────────────────────────────────────────
+    INCREMENT_VIEW: (id: string) => `/api/products/${id}/view`,
   },
 
   ADMIN: {

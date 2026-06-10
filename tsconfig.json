@@ -29,6 +29,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "app/admin/orders/[id]/shipping"  ],
+, "app/admin/orders/[id]/shipping", "app/_componets/colors.ctsx"  ],
   "exclude": ["node_modules"]
 }

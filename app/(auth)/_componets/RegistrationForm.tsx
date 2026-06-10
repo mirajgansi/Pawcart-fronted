@@ -147,7 +147,11 @@ const onSubmit = async (data: RegisterData) => {
       <button
         type="submit"
         disabled={isSubmitting || pending}
-        className="h-10 w-full rounded-md bg-[#4CAF50] text-white text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+        className="h-10 w-full rounded-md text-white text-sm font-semibold hover:opacity-90 disabled:opacity-60"
+         style={{
+            backgroundColor: "var(--interactive-primary)",
+            color: "var(--interactive-primary-text)",
+          }}
       >
         {isSubmitting || pending ? "Creating..." : "Create account"}
       </button>

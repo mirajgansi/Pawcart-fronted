@@ -69,7 +69,11 @@ export default function RequestResetPassword() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-xl bg-[#4CAF50] text-white py-2.5 font-medium disabled:opacity-60"
+            className="w-full rounded-xl text-white py-2.5 font-medium disabled:opacity-60"
+            style={{
+              backgroundColor: "var(--interactive-primary)",
+              color: "var(--interactive-primary-text)",
+            }}
           >
          Send reset code
           </button>

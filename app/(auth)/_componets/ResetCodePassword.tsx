@@ -59,8 +59,12 @@ export default function ResetCodePasswordPage() {
           </div>
 
           <button
-            className="w-full rounded-xl bg-[#4CAF50] text-white py-2.5 font-medium"
+            className="w-full rounded-xl text-white py-2.5 font-medium"
             type="submit"
+            style={{
+            backgroundColor: "var(--interactive-primary)",
+            color: "var(--interactive-primary-text)",
+          }}
           >
             Next
           </button>
