@@ -4,16 +4,15 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, ShoppingCart, BadgePercent, BadgeX, Search, ChevronRight, Star } from "lucide-react";
+import ProductCard from "../../_components/Productcard";
 
 const NAV_LINKS = ["Home", "Shop", "Categories", "About", "Contact"];
 
 const CATEGORIES = [
-  { id: "1", name: "Dog Food", icon: "🐕", href: "/user/products?category=dog-food" },
-  { id: "2", name: "Cat Food", icon: "🐈", href: "/user/products?category=cat-food" },
-  { id: "3", name: "Grooming", icon: "✂️", href: "/user/products?category=grooming" },
-  { id: "4", name: "Toys", icon: "🧸", href: "/user/products?category=toys" },
-  { id: "5", name: "Accessories", icon: "🎀", href: "/user/products?category=accessories" },
-  { id: "6", name: "Health", icon: "💊", href: "/user/products?category=health" },
+  { id: "1", name: "Dogs", image: "/dogs.png", href: "/user/category/dogs" },
+  { id: "2", name: "Cats", image: "/Cats.png", href: "/user/category/cats" },
+  { id: "3", name: "Birds", image: "/Birds.png", href: "/user/category/birds" },
+  { id: "4", name: "Fish", image: "/fish.jpg", href: "/user/category/fish" },
 ];
 
 const TRENDING = [
@@ -36,63 +35,6 @@ const TESTIMONIALS = [
   { name: "Priya R.", rating: 4, text: "Wide selection and good prices. My cat is obsessed with the new kibble.", avatar: "PR" },
 ];
 
-function MiniProductCard({
-  id, image, name, price, unit = "per kg", inStock = 0, isFavorite = false,
-  onAddToCart, onToggleWishlist,
-}: {
-  id: string; image: string; name: string; price: number; unit?: string;
-  inStock?: number; isFavorite?: boolean;
-  onAddToCart?: () => void; onToggleWishlist?: () => void;
-}) {
-  return (
-    <div className="w-full bg-[var(--bg-surface)] rounded-2xl p-3 shadow-sm relative group border border-[var(--border-default)]">
-      <button
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist?.(); }}
-        className="absolute top-3 right-3 z-10 bg-[var(--bg-surface)] p-2 rounded-full shadow hover:scale-105 transition"
-        aria-label="Toggle favorite"
-      >
-        <Heart className={`h-5 w-5 transition ${isFavorite ? "fill-[var(--color-primary-500)] text-[var(--color-primary-500)]" : "text-[var(--color-primary-300)] hover:text-[var(--color-primary-500)]"}`} />
-      </button>
-
-      <Link href={`/user/products/${id}`} className="block">
-        <div className="bg-[var(--color-tertiary)] rounded-xl w-full relative overflow-hidden flex items-center justify-center h-28 sm:h-32">
-          <Image src={image} alt={name} fill unoptimized className="object-contain p-2" sizes="25vw" />
-        </div>
-
-        {inStock <= 0 ? (
-          <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary-50)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-primary-700)]">
-            <BadgeX className="h-4 w-4" /> Out of stock
-          </div>
-        ) : (
-          <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-[var(--color-primary-50)] px-2.5 py-1 text-[11px] font-medium text-[var(--color-primary-600)]">
-            <BadgePercent className="h-4 w-4" /> {inStock} in stock
-          </div>
-        )}
-
-        <h3 className="mt-2 text-sm font-semibold text-[var(--text-primary)] line-clamp-2">{name}</h3>
-      </Link>
-
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <p className="text-[var(--text-brand)] text-sm font-bold whitespace-nowrap">
-          RS{price.toFixed(2)}
-          <span className="text-[var(--text-secondary)] text-[11px] font-normal">/{unit}</span>
-        </p>
-        <button
-          onClick={onAddToCart}
-          disabled={inStock <= 0}
-          className={`shrink-0 rounded-full p-2 shadow transition ${
-            inStock <= 0
-              ? "cursor-not-allowed bg-gray-200 text-gray-400"
-              : "bg-[var(--interactive-primary)] text-[var(--interactive-primary-text)] hover:bg-[var(--interactive-primary-hover)]"
-          }`}
-          aria-label="Add to cart"
-        >
-          <ShoppingCart className="h-4 w-4" />
-        </button>
-      </div>
-    </div>
-  );
-}
 
 export default function HomePage() {
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
@@ -104,55 +46,90 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-[var(--bg-page)] font-sans">
 
-    
 
-      {/* ── Hero ── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
-        <div className="bg-[var(--color-primary-50)] rounded-3xl overflow-hidden flex flex-col md:flex-row items-center min-h-[320px] md:min-h-[380px] relative border border-[var(--color-primary-100)]">
-          <div className="flex-1 p-8 md:p-12 z-10">
-            <span className="inline-block bg-[var(--color-primary-500)] text-white text-xs font-semibold rounded-full px-3 py-1 mb-4">
-              🐾 New Collection
-            </span>
-            <h1 className="text-3xl md:text-5xl font-bold text-[var(--text-primary)] leading-tight mb-4">
-              Curated Compassion<br />
-              <span className="text-[var(--text-brand)]">for Your Furry Family</span>
-            </h1>
-            <p className="text-[var(--text-secondary)] text-sm md:text-base mb-6 max-w-sm">
-              Premium food, grooming essentials, and accessories — everything your pet needs, delivered fast.
-            </p>
-            <Link href="/user/products"
-              className="inline-flex items-center gap-2 bg-[var(--interactive-primary)] hover:bg-[var(--interactive-primary-hover)] text-white font-semibold px-6 py-3 rounded-full transition text-sm shadow-sm">
-              Shop Now <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
+     {/* ── Hero ── */}
+<section className="max-w-7xl mx-auto px-4 sm:px-6 py-8 md:py-12">
+  <div
+    className="rounded-3xl overflow-hidden flex flex-col md:flex-row items-center min-h-[320px] md:min-h-[380px] relative border "
+    style={{
+      background: `
+        radial-gradient(ellipse at top right, var(--color-primary-100) 0%, transparent 55%),
+        radial-gradient(ellipse at bottom right, var(--color-primary-50) 0%, transparent 50%),
+        #ffffff
+      `,
+    }}
+  >
+    {/* Left content */}
+    <div className="flex-1 p-8 md:p-12 z-10">
+      <span className="inline-block bg-[var(--color-primary-500)] text-white text-xs font-semibold rounded-full px-3 py-1 mb-4">
+        New Season Arrivals
+      </span>
+      <h1 className="text-3xl md:text-5xl font-bold leading-tight mb-4">
+        Curated Compassion<br />
+        <span className="text-[var(--text-brand)]">for Your Furry Family</span>
+      </h1>
+      <p className="text-[var(--text-secondary)] text-sm md:text-base mb-6 max-w-sm">
+        Premium food, grooming essentials, and accessories — everything your pet needs, delivered fast.
+      </p>
+      <Link
+        href="/user/products"
+        className="inline-flex items-center gap-2 bg-[var(--interactive-primary)] hover:bg-[var(--interactive-primary-hover)] text-white font-semibold px-6 py-3 rounded-full transition text-sm shadow-sm"
+      >
+        Shop Now <ChevronRight className="h-4 w-4" />
+      </Link>
+    </div>
 
-          <div className="flex-1 flex items-end justify-center h-48 md:h-full md:absolute md:right-0 md:top-0 md:bottom-0 md:w-1/2">
-            <div className="w-56 h-56 md:w-80 md:h-80 bg-[var(--color-primary-100)] rounded-full flex items-center justify-center text-9xl select-none mr-8 mb-4 md:mb-0">
-              🐕
-            </div>
-          </div>
-        </div>
-      </section>
+    {/* Right image */}
+    <div className="flex-1 flex items-end justify-center h-48 md:h-full md:absolute md:right-0 md:top-0 md:bottom-0 md:w-1/2">
+      <div
+        className="w-100 h-100 md:w-80 md:h-80 rounded-full flex items-center justify-center mr-8 mb-4 md:mb-0"
+      >
+        <Image src="/Happy Dog.png" alt="Paw" width={700} height={500} className="object-contain" />
+      </div>
+    </div>
+  </div>
+</section>
 
-      {/* ── Shop by Category ── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-[var(--text-primary)]">Shop by Category</h2>
-          <Link href="/user/products" className="text-sm text-[var(--text-brand)] hover:underline flex items-center gap-1">
-            View all <ChevronRight className="h-4 w-4" />
-          </Link>
-        </div>
+     {/* ── Shop by Category ── */}
+<section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+  <div className="flex flex-col items-center mb-6">
+    <h2 className="text-4xl font-bold text-(--text-primary)">Shop by Category</h2>
+    <div
+      className="mt-2 rounded-full"
+      style={{
+        width: "40px",
+        height: "3px",
+        backgroundColor: "var(--interactive-primary)",
+      }}
+    />
+  </div>
 
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-          {CATEGORIES.map((cat) => (
-            <Link key={cat.id} href={cat.href}
-              className="flex flex-col items-center gap-2 bg-[var(--bg-surface)] rounded-2xl p-4 border border-[var(--border-default)] hover:border-[var(--color-primary-300)] hover:shadow-md transition group">
-              <span className="text-3xl group-hover:scale-110 transition">{cat.icon}</span>
-              <span className="text-xs font-medium text-[var(--text-secondary)] text-center leading-tight group-hover:text-[var(--text-brand)] transition">{cat.name}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
+ <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+  {CATEGORIES.map((cat) => (
+    <Link
+      key={cat.id}
+      href={cat.href}
+      className="flex flex-col items-center gap-3 bg-[var(--bg-surface)] rounded-2xl p-4 border border-[var(--border-default)] hover:border-[var(--color-primary-300)] hover:shadow-md transition group"
+    >
+      <div
+        className="w-30 h-30 rounded-full overflow-hidden relative flex-shrink-0"
+        style={{ backgroundColor: "var(--color-primary-50)" }}
+      >
+        <Image
+          src={cat.image}
+          alt={cat.name}
+          fill
+          unoptimized
+  className="object-cover object-[50%_20%] scale-110 group-hover:scale-125 transition duration-300"
+        />
+      </div>
+      <span className="text-sm font-semibold text-[var(--text-secondary)] text-center group-hover:text-[var(--text-brand)] transition">
+        {cat.name}
+      </span>
+    </Link>
+  ))}
+</div>
+</section>
 
       {/* ── Trending ── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
@@ -164,7 +141,7 @@ export default function HomePage() {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {TRENDING.map((p) => (
-            <MiniProductCard key={p._id} id={p._id} image={p.image} name={p.name} price={p.price}
+            <ProductCard key={p._id} id={p._id} image={p.image} name={p.name} price={p.price}
               unit={p.unit} inStock={p.inStock} isFavorite={favorites[p._id] ?? false}
               onToggleWishlist={() => toggleFav(p._id)} onAddToCart={addToCart} />
           ))}
@@ -205,7 +182,7 @@ export default function HomePage() {
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {NEW_ARRIVALS.map((p) => (
-            <MiniProductCard key={p._id} id={p._id} image={p.image} name={p.name} price={p.price}
+            <ProductCard key={p._id} id={p._id} image={p.image} name={p.name} price={p.price}
               unit={p.unit} inStock={p.inStock} isFavorite={favorites[p._id] ?? false}
               onToggleWishlist={() => toggleFav(p._id)} onAddToCart={addToCart} />
           ))}
