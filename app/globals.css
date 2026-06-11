@@ -105,7 +105,8 @@
   --text-primary:               #000000;
   --text-secondary:             #525252;
   --text-brand:                 #7F1D1D;
-
+  --text-primary: #574240;        /* light red (was #000000) */
+--text-brand:   #5F030A;  
   --border-default:             #d4d4d4;
 
   --interactive-primary:        #7F1D1D;

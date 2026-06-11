@@ -80,7 +80,7 @@ export default function OnboardingPage() {
         {/* Your paw image */}
         <div className="relative z-[1] w-full h-full flex items-center justify-center">
           <Image
-            src="/images/paw.png"
+            src="/paw.png"
             alt="Paw"
             fill
             className="object-contain p-6 rounded-full"

@@ -24,6 +24,7 @@ import { CART_UPDATED_EVENT } from "@/lib/cart-event";
 import AvatarMenu from "@/app/_componets/AvatarMenu";
 import NotificationBell from "@/app/_componets/Notification";
 import Link from "next/link";
+import SearchBar from "./searchbar";
 
 type CartItem = { quantity: number };
 type CartResponse = {
@@ -70,14 +71,15 @@ useEffect(() => {
   return (
     <>
       <div className="flex items-center gap-5">
+
         {/* Search */}
         <Link
-  href="/user/favorites"
-  className="text-gray-600 hover:text-black transition"
-  aria-label="Favorites"
->
-  <Heart size={20} />
-</Link>
+    href="/user/favorites"
+    className="text-gray-600 hover:text-black transition"
+    aria-label="Favorites"
+  >
+    <Heart size={20} />
+  </Link>
         {/* Wishlist */}
       <div className="flex justify-center xl:justify-end ">
               {user?._id &&<NotificationBell userId={user._id} role={user.role} />}
@@ -93,7 +95,7 @@ useEffect(() => {
           <ShoppingCart size={20} />
 
           {cartCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-green-500 text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center rounded-full">
+            <span className="absolute -top-2 -right-2 text-white text-xs min-w-5 h-5 px-1 flex items-center justify-center rounded-full">
               {cartCount > 99 ? "99+" : cartCount}
             </span>
           )}
