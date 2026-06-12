@@ -169,29 +169,75 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Why Choose Us ── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-        <div className="bg-[var(--bg-surface)] rounded-3xl p-8 md:p-10 border border-[var(--border-default)]">
-          <div className="text-center mb-8">
-            <h2 className="text-xl font-bold text-[var(--text-primary)]">The Professional Choice</h2>
-            <p className="text-sm text-[var(--text-secondary)] mt-1">Why thousands of pet owners trust PawCart</p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {[
-              { emoji: "🚚", title: "Fast Delivery", desc: "Next-day dispatch on all orders over RS 500" },
-              { emoji: "🌿", title: "Natural Ingredients", desc: "Vet-approved, free from harmful additives" },
-              { emoji: "🛡️", title: "Quality Guarantee", desc: "30-day returns, no questions asked" },
-              { emoji: "💬", title: "24/7 Support", desc: "Our pet care team is always here to help" },
-            ].map((item) => (
-              <div key={item.title} className="flex flex-col items-center text-center gap-2">
-                <span className="text-3xl">{item.emoji}</span>
-                <h3 className="text-sm font-semibold text-[var(--text-primary)]">{item.title}</h3>
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+{/* ── Why Choose Us ── */}
+<section className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+  <div className="flex flex-col md:flex-row items-center gap-10">
+
+    {/* Left — true masonry Pinterest grid */}
+<div className="w-full md:w-1/2 grid grid-cols-2 grid-rows-[200px_60px_200px] gap-5">
+
+      {/* Top-left — spans 1 row */}
+      <div className="row-span-1 rounded-2xl overflow-hidden">
+        <img src="/brush.png" alt="Brush" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+      </div>
+
+      {/* Top-right — spans 2 rows (taller) */}
+      <div className="row-span-2 rounded-2xl overflow-hidden">
+        <img src="/scissors.png" alt="Scissors" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+      </div>
+
+      {/* Middle-left — spans 2 rows (taller) */}
+      <div className="row-span-2 rounded-2xl overflow-hidden">
+        <img src="/shampoo.png" alt="Shampoo" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+      </div>
+
+      {/* Bottom-right — spans 1 row */}
+      <div className="row-span-1 rounded-2xl overflow-hidden">
+        <img src="/poodle.png" alt="Poodle" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+      </div>
+
+    </div>
+
+    {/* Right — text content */}
+    <div className="w-full md:w-1/2 flex flex-col gap-5">
+      <h2 className="text-2xl md:text-3xl font-bold text-[var(--text-brand)]">
+        The Professional's Choice
+      </h2>
+      <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+        Our grooming kits are designed in collaboration with award-winning pet stylists.
+        Each set includes everything you need to maintain a runway-ready coat from the comfort of your home.
+      </p>
+
+<ul className="flex flex-col gap-3">
+  {[
+    "Organic, Paraben-Free Formulas",
+    "Professional Grade Stainless Steel Tools",
+    "Detailed How-to Styling Guide Included",
+  ].map((item) => (
+    <li key={item} className="flex items-center gap-3 text-sm text-[var(--text-secondary)]">
+      <span
+        className="flex items-center justify-center rounded-full w-5 h-5 shrink-0 bg-white"
+        style={{ border: "1.5px solid var(--color-primary-700)" }}
+      >
+        <svg className="w-3 h-3" viewBox="0 0 12 12" fill="none">
+          <path d="M2 6l3 3 5-5" stroke="var(--color-primary-700)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </span>
+      {item}
+    </li>
+  ))}
+</ul>
+      <Link
+        href="/user/products?category=grooming"
+        className="inline-flex items-center gap-2 text-white font-semibold text-sm px-6 py-3 rounded-full w-fit transition hover:opacity-90"
+        style={{ backgroundColor: "var(--color-primary-800)" }}
+      >
+        Explore Kits 
+      </Link>
+    </div>
+
+  </div>
+</section>
 
       
       {/* ── Footer ── */}
