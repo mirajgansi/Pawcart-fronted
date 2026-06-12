@@ -2,7 +2,6 @@ import Image from "next/image";
 import { handleGetProductById } from "@/lib/actions/product-action";
 import { notFound } from "next/navigation";
 import ProductDetailClient from "../components/ProdcutDetail";
-import ProductSection from "../../dashboard/_components/ProductSection";
 
 function buildImageUrl(image?: string) {
   if (!image) return "/cookie.jpg";
@@ -32,7 +31,6 @@ const images = product.images?.length
   <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
     <ProductDetailClient product={product} images={images} />
     <div className="mt-10">
-      <ProductSection title="Popular" kind="popular" />
     </div>
   </div>
 );

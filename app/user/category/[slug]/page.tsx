@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import ProductsGrid from "../../_components/ProdcutGrid";
 import { handleGetProductsByPet, handleGetProductsByType } from "@/lib/actions/product-action";
+import CategoryShowcase from "../component/CategoryPage";
 
 
 // All known slugs and which handler they belong to
@@ -39,6 +40,7 @@ export default async function CategoryPage({
   return (
     <div className="w-full">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
+        <CategoryShowcase/>
         <div className="mb-6">
           <h1 className="text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>
             {formattedName}
@@ -50,7 +52,7 @@ export default async function CategoryPage({
 
         {products.length ? (
           <ProductsGrid
-            title="Category Products"
+            title=""
             mode="prefetched"
             initialProducts={products}
           />
