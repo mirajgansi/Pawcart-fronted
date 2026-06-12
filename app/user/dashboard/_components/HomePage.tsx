@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Heart, ShoppingCart, BadgePercent, BadgeX, Search, ChevronRight, Star } from "lucide-react";
 import ProductCard from "../../_components/Productcard";
+import PromoBanner from "./PromoBanner";
 
 const NAV_LINKS = ["Home", "Shop", "Categories", "About", "Contact"];
 
@@ -22,11 +23,11 @@ const TRENDING = [
   { _id: "t4", name: "Grain Free Formula", price: 18.00, unit: "per kg", inStock: 8, image: "/cookie.jpg" },
 ];
 
-const NEW_ARRIVALS = [
-  { _id: "n1", name: "Hypoallergenic Dog Shampoo", price: 9.99, unit: "per bottle", inStock: 30, image: "/cookie.jpg" },
-  { _id: "n2", name: "Interactive Feather Toy", price: 4.50, unit: "each", inStock: 0, image: "/cookie.jpg" },
-  { _id: "n3", name: "Stainless Bowl Set", price: 14.99, unit: "per set", inStock: 12, image: "/cookie.jpg" },
-  { _id: "n4", name: "Calming Chews", price: 22.00, unit: "per jar", inStock: 6, image: "/cookie.jpg" },
+const BEST_SELLERS = [
+  { _id: "b1", name: "Hypoallergenic Dog Shampoo", price: 9.99, unit: "per bottle", inStock: 30, image: "/cookie.jpg" },
+  { _id: "b2", name: "Interactive Feather Toy", price: 4.50, unit: "each", inStock: 0, image: "/cookie.jpg" },
+  { _id: "b3", name: "Stainless Bowl Set", price: 14.99, unit: "per set", inStock: 12, image: "/cookie.jpg" },
+  { _id: "b4", name: "Calming Chews", price: 22.00, unit: "per jar", inStock: 6, image: "/cookie.jpg" },
 ];
 
 const TESTIMONIALS = [
@@ -149,39 +150,18 @@ export default function HomePage() {
       </section>
 
       {/* ── Promo Banner ── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        <div className="bg-[var(--color-primary-800)] rounded-3xl flex flex-col md:flex-row items-center overflow-hidden min-h-[180px]">
-          <div className="flex-1 p-8 md:p-10">
-            <span className="text-[var(--color-primary-200)] text-xs font-semibold uppercase tracking-widest block mb-2">
-              Limited Time
-            </span>
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">
-              Luxury Grooming Kit — 30% Off
-            </h2>
-            <p className="text-[var(--color-primary-200)] text-sm mb-5">
-              Professional-grade tools for at-home spa days. Your pet deserves it.
-            </p>
-            <Link href="/user/products?category=grooming"
-              className="inline-flex items-center gap-2 bg-white text-[var(--color-primary-800)] font-semibold text-sm px-5 py-2.5 rounded-full hover:bg-[var(--color-primary-50)] transition">
-              Shop Grooming <ChevronRight className="h-4 w-4" />
-            </Link>
-          </div>
-          <div className="flex items-center justify-center p-6 md:p-10 text-7xl select-none">
-            ✂️🛁
-          </div>
-        </div>
-      </section>
+      <PromoBanner/>
 
       {/* ── New Arrivals ── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-[var(--text-primary)]">New Arrivals</h2>
+          <h2 className="text-xl font-bold text-[var(--text-primary)]">Best Sellers</h2>
           <Link href="/user/products" className="text-sm text-[var(--text-brand)] hover:underline flex items-center gap-1">
             See all <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {NEW_ARRIVALS.map((p) => (
+          {BEST_SELLERS.map((p) => (
             <ProductCard key={p._id} id={p._id} image={p.image} name={p.name} price={p.price}
               unit={p.unit} inStock={p.inStock} isFavorite={favorites[p._id] ?? false}
               onToggleWishlist={() => toggleFav(p._id)} onAddToCart={addToCart} />
@@ -213,29 +193,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Testimonials ── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        <h2 className="text-xl font-bold text-[var(--text-primary)] mb-4">Happy Customers</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {TESTIMONIALS.map((t) => (
-            <div key={t.name} className="bg-[var(--bg-surface)] rounded-2xl p-5 border border-[var(--border-default)]">
-              <div className="flex items-center gap-1 mb-3">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star key={i} className={`h-4 w-4 ${i < t.rating ? "fill-[var(--color-primary-400)] text-[var(--color-primary-400)]" : "text-gray-200"}`} />
-                ))}
-              </div>
-              <p className="text-sm text-[var(--text-secondary)] mb-4 leading-relaxed">"{t.text}"</p>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-[var(--color-primary-100)] text-[var(--color-primary-700)] flex items-center justify-center text-xs font-bold">
-                  {t.avatar}
-                </div>
-                <span className="text-sm font-medium text-[var(--text-primary)]">{t.name}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
+      
       {/* ── Footer ── */}
       <footer className="mt-12 bg-[var(--color-primary-900)] text-[var(--color-primary-200)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">

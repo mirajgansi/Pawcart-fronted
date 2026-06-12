@@ -35,7 +35,7 @@ export default function ProductCard({
         onClick={(e) => {
   e.preventDefault();
   e.stopPropagation();
-  console.log("clicked fav", id); // ✅ debug
+  console.log("clicked fav", id);
   onToggleWishlist?.();
 }}
         className="absolute top-3 right-3 z-10 bg-white p-2 rounded-full shadow hover:scale-105 transition"
