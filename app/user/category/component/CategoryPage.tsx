@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import CategoryHero from "./HeroPage";
 
 type CategoryTile = {
   label: string;
@@ -13,6 +14,7 @@ type CategoryTile = {
 
 type CategoryShowcaseProps = {
   categories?: CategoryTile[];
+  petSlug: string;
 };
 
 const DEFAULT_CATEGORIES: CategoryTile[] = [
@@ -50,7 +52,7 @@ export default function CategoryShowcase({
 
   return (
     <div className="rounded-2xl p-3" style={{ background: "#f5ede4" }}>
-      <div
+   <div
         className="grid gap-2.5"
         style={{
 

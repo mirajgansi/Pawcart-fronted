@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import ProductsGrid from "../../_components/ProdcutGrid";
 import { handleGetProductsByPet, handleGetProductsByType } from "@/lib/actions/product-action";
 import CategoryShowcase from "../component/CategoryPage";
+import CategoryHero from "../component/HeroPage";
 
 
 // All known slugs and which handler they belong to
@@ -36,31 +37,30 @@ export default async function CategoryPage({
 
   const products = res.products ?? res.data ?? [];
   const formattedName = formatSlug(slug);
+  const isPetCategory = PET_CATEGORIES.includes(slug); // ← add this
 
   return (
     <div className="w-full">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-8">
-        <CategoryShowcase/>
+
+        {/* Only show sub-category tiles on pet pages */}
+        {isPetCategory && <CategoryHero petSlug={slug} />}
+
+        {isPetCategory && <CategoryShowcase petSlug={slug} />}
+
         <div className="mb-6">
           <h1 className="text-2xl font-semibold" style={{ color: "var(--text-primary)" }}>
-            {formattedName}
+Curated for Your Canine
           </h1>
           <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-            Browse our collection of {formattedName.toLowerCase()} products.
-          </p>
+Expertly selected favorites for performance and longevity.          </p>
         </div>
 
         {products.length ? (
-          <ProductsGrid
-            title=""
-            mode="prefetched"
-            initialProducts={products}
-          />
+          <ProductsGrid title="" mode="prefetched" initialProducts={products} />
         ) : (
-          <div
-            className="mt-10 rounded-2xl border p-8 text-center"
-            style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-default)" }}
-          >
+          <div className="mt-10 rounded-2xl border p-8 text-center"
+            style={{ backgroundColor: "var(--bg-surface)", borderColor: "var(--border-default)" }}>
             <p style={{ color: "var(--text-secondary)" }}>
               No products available in {formattedName} at the moment.
             </p>
