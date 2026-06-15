@@ -1,7 +1,7 @@
 import { PET_CATEGORIES, PRODUCT_CATEGORIES, PetCategorySlug, ProductCategorySlug } from "@/lib/categories";
 import { z } from "zod";
 
-const PET_CATEGORY_SLUGS = PET_CATEGORIES.map((c) => c.slug) as [PetCategorySlug, ...PetCategorySlug[]];
+const PET_CATEGORY_SLUGS = ["dogs", "cats", "birds", "fish", "rabbits", "small-pets"] as const;
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
@@ -28,7 +28,7 @@ const BaseSchema = z.object({
   price:        z.coerce.number().positive("Price must be greater than 0"),
   inStock:      z.coerce.number().int().min(0).default(0),
   manufacturer: z.string().min(1, "Manufacturer is required"),
-  category:     z.enum(PET_CATEGORY_SLUGS, { message: "Pet category is required" }),
+  category: z.array(z.enum(PET_CATEGORY_SLUGS)).min(1, "Select at least one pet category"),
   image: z
     .array(z.instanceof(File))
     .min(1, "At least 1 image is required")

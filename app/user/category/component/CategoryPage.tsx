@@ -17,37 +17,63 @@ type CategoryShowcaseProps = {
   petSlug: string;
 };
 
-const DEFAULT_CATEGORIES: CategoryTile[] = [
-  {
-    label: "Food",
-    image: "/Dogfood.png",
-    href: "/user/category/food",
-    description: "Nutrition-first whole recipes",
-    labelPosition: "bottom-left",
-  },
-  {
-    label: "Toys",
-    image: "/toys.png",
-    href: "/user/category/toys",
-    labelPosition: "bottom-left",
-  },
-  {
-    label: "Beds",
-    image: "/bed.png",
-    href: "/user/category/housing",
-    labelPosition: "top-right",
-  },
-  {
-    label: "Collars",
-    image: "/collars.png",
-    href: "/user/category/accessories",
-    labelPosition: "top-right",
-  },
+const PET_SUBCATEGORIES: Record<string, CategoryTile[]> = {
+  dogs: [
+    { label: "Food",    image: "/Dogfood.png",   href: "", description: "Nutrition-first whole recipes" },
+    { label: "Toys",    image: "/toys.png",       href: "" },
+    { label: "Beds",    image: "/bed.png",        href: "" },
+    { label: "Collars", image: "/collars.png",    href: "" },
+  ],
+  cats: [
+    { label: "Food",    image: "/Dogfood.png",   href: "", description: "Gourmet feline recipes" },
+    { label: "Toys",    image: "/toys.png",       href: "" },
+    { label: "Beds",    image: "/bed.png",        href: "" },
+    { label: "Collars", image: "/collars.png",    href: "" },
+  ],
+  birds: [
+    { label: "Food",    image: "/bird-food.png",  href: "", description: "Premium seeds & pellets" },
+    { label: "Toys",    image: "/bird-toys.png",  href: "" },
+    { label: "Cages",   image: "/cage.png",       href: "" },
+    { label: "Perches", image: "/perch.png",      href: "" },
+  ],
+  fish: [
+    { label: "Food",      image: "/fish-food.png",    href: "", description: "Flakes, pellets & more" },
+    { label: "Decor",     image: "/fish-decor.png",   href: "" },
+    { label: "Aquariums", image: "/aquarium.png",     href: "" },
+    { label: "Filters",   image: "/filter.png",       href: "" },
+  ],
+  rabbits: [
+    { label: "Food",    image: "/rabbit-food.png", href: "", description: "Hay, pellets & treats" },
+    { label: "Toys",    image: "/rabbit-toys.png", href: "" },
+    { label: "Hutches", image: "/hutch.png",       href: "" },
+    { label: "Bedding", image: "/bedding.png",     href: "" },
+  ],
+};
+
+// Fallback for unknown pets
+const DEFAULT_SUBCATEGORIES: CategoryTile[] = [
+  { label: "Food",        image: "/Dogfood.png",  href: "", description: "Premium recipes" },
+  { label: "Toys",        image: "/toys.png",     href: "" },
+  { label: "Accessories", image: "/collars.png",  href: "" },
+  { label: "Housing",     image: "/bed.png",      href: "" },
 ];
 
-export default function CategoryShowcase({
-  categories = DEFAULT_CATEGORIES,
-}: CategoryShowcaseProps) {
+export default function CategoryShowcase({ petSlug }: CategoryShowcaseProps) {
+  const baseCategories = PET_SUBCATEGORIES[petSlug] ?? DEFAULT_SUBCATEGORIES;
+
+  // Inject dynamic hrefs based on petSlug
+  const SLUG_MAP: Record<string, string> = {
+    Food: "food", Toys: "toys", Beds: "housing", Collars: "accessories",
+    Cages: "housing", Perches: "accessories", Aquariums: "housing",
+    Filters: "accessories", Decor: "accessories", Hutches: "housing",
+    Bedding: "accessories", Housing: "housing",
+  };
+
+  const categories = baseCategories.map((cat) => ({
+    ...cat,
+    href: `/user/category/${petSlug}/${SLUG_MAP[cat.label] ?? cat.label.toLowerCase()}`,
+  }));
+
   const [food, toys, beds, collars] = categories;
 
   return (

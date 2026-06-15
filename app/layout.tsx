@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+// @ts-ignore: side-effect CSS import without module declarations
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import ToastProvider from "./_componets/ToastProvider";
@@ -17,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Click Shop",
-  description: "This is an online grocery store built with Next.js 13, Tailwind CSS, and TypeScript. It features user authentication, product browsing, shopping cart functionality, and a seamless checkout process. The application is designed to provide a smooth and enjoyable shopping experience for users looking to purchase groceries online.",
+  title: "PawCart",
+  description: "This is an online pet store built with Next.js 13, Tailwind CSS, and TypeScript. It features user authentication, product browsing, shopping cart functionality, and a seamless checkout process. The application is designed to provide a smooth and enjoyable shopping experience for users looking to purchase groceries online.",
 };
 
 export default function RootLayout({

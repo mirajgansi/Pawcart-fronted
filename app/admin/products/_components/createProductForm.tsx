@@ -2,48 +2,50 @@
 
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
+import { CalendarIcon, Camera, Plus, X, Check } from "lucide-react";
+import { format } from "date-fns";
 
 import { handleCreateProduct } from "@/lib/actions/product-action";
-import {  ProductData, ProductSchema } from "../schema";
-import {  CalendarIcon, Camera } from "lucide-react";
+import { ProductData, ProductSchema } from "../schema";
 import { CategoryModal } from "./category_modal";
 import CreateProductStep1Skeleton from "./skeleton_add_prdocut";
-import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { PET_CATEGORIES, PetCategorySlug, PRODUCT_CATEGORIES, ProductCategorySlug } from "@/lib/categories";
 import { FormSelect } from "@/app/_componets/dropdown";
+import {
+  PET_CATEGORIES,
+  PetCategorySlug,
+  PRODUCT_CATEGORIES,
+  ProductCategorySlug,
+} from "@/lib/categories";
 
-/** ---------------- helpers ---------------- */
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 type ActionResponse =
   | { success: true; message?: string; data?: any }
   | { success: false; message?: string; issues?: any };
+
+type WizardData = ProductData;
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getErrorMessage(err: unknown, fallback = "Create product failed") {
   if (!err) return fallback;
   if (err instanceof Error) return err.message || fallback;
   if (typeof err === "string") return err;
-
   if (typeof err === "object") {
-    const anyErr = err as any;
-    if (typeof anyErr.message === "string" && anyErr.message.trim()) return anyErr.message;
-
-    if (Array.isArray(anyErr.issues) && anyErr.issues.length) {
-      const first = anyErr.issues[0];
+    const e = err as any;
+    if (typeof e.message === "string" && e.message.trim()) return e.message;
+    if (Array.isArray(e.issues) && e.issues.length) {
+      const first = e.issues[0];
       const path = Array.isArray(first.path) ? first.path.join(".") : "";
-      const msg = first.message || "Invalid input";
-      return path ? `${path}: ${msg}` : msg;
+      return path ? `${path}: ${first.message}` : first.message || "Invalid input";
     }
   }
-
   return fallback;
 }
 
@@ -53,28 +55,347 @@ function normalizeActionResponse(res: any): ActionResponse {
   return { success: false, message: "Unexpected server response" };
 }
 
-/** ---------------- main wizard ---------------- */
-type WizardData = ProductData
-const stepFields: Record<number, (keyof WizardData)[]> = {
-  1: ["name", "image", "description"],
-  2: ["price", "inStock", "category", "productCategory"],
-  3: ["manufacturer"], // ← only this; rest validated on submit
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const PET_CATEGORY_META: Record<PetCategorySlug, { label: string; icon: string }> = {
+  dogs:       { label: "Dogs",       icon: "🐕" },
+  cats:       { label: "Cats",       icon: "🐈" },
+  birds:      { label: "Birds",      icon: "🦜" },
+  fish:       { label: "Fish",       icon: "🐟" },
+  rabbits:    { label: "Rabbits",    icon: "🐇" },
+  "small-pets": { label: "Small Pets", icon: "🐹" },
 };
+
+const PRODUCT_CATEGORY_META: Record<ProductCategorySlug, { label: string; icon: string }> = {
+  food:         { label: "Food",        icon: "🥩" },
+  accessories:  { label: "Accessories", icon: "🎀" },
+  housing:      { label: "Housing",     icon: "🏠" },
+  grooming:     { label: "Grooming",    icon: "✨" },
+  toys:         { label: "Toys",        icon: "🎾" },
+  "health-care":{ label: "Health Care", icon: "💊" },
+};
+
+const COLORS = ["red","blue","orange","black","pink","green","yellow","purple","white","brown"] as const;
+const COLOR_HEX: Record<string, string> = {
+  red:"#E24B4A", blue:"#378ADD", orange:"#EF9F27", black:"#1a1a1a",
+  pink:"#D4537E", green:"#639922", yellow:"#BA7517", purple:"#7F77DD",
+  white:"#e5e5e5", brown:"#854F0B",
+};
+
+// Step fields for per-step validation
+const stepFields: Record<number, (keyof WizardData)[]> = {
+  1: ["name", "image", "description", "price", "inStock", "manufacturer"],
+  2: ["category", "productCategory"],
+  3: [],
+};
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function FieldError({ msg }: { msg?: string }) {
+  if (!msg) return null;
+  return <p className="mt-1 text-xs text-red-500">{msg}</p>;
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mb-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+      {children}
+    </p>
+  );
+}
+
+function DatePickerField({
+  control,
+  name,
+  label,
+}: {
+  control: any;
+  name: string;
+  label: string;
+}) {
+  return (
+    <div className="space-y-1">
+      <label className="text-sm font-medium">{label}</label>
+      <Controller
+        control={control}
+        name={name as any}
+        render={({ field }) => (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="h-10 w-full justify-start text-left font-normal"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {field.value ? (
+                  format(new Date(field.value), "PPP")
+                ) : (
+                  <span className="text-muted-foreground">Pick a date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+              <Calendar
+                mode="single"
+                selected={field.value ? new Date(field.value) : undefined}
+                onSelect={(d) => field.onChange(d ? d.toISOString() : null)}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        )}
+      />
+    </div>
+  );
+}
+
+// ─── Conditional fields per product category ──────────────────────────────────
+
+function FoodFields({ control, register, errors }: any) {
+  return (
+    <div className="space-y-4">
+      <div className="space-y-1">
+        <label className="text-sm font-medium">
+          Nutritional Info <span className="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40"
+          placeholder="e.g. Protein 28%, Fat 14%, Fibre 3%"
+          {...register("nutritionalInfo")}
+        />
+        <FieldError msg={errors.nutritionalInfo?.message} />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <DatePickerField control={control} name="manufactureDate" label="Manufacture Date" />
+        <DatePickerField control={control} name="expireDate" label="Expiry Date" />
+      </div>
+    </div>
+  );
+}
+
+function AccessoryFields({ control, register, errors }: any) {
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Pattern <span className="text-red-500">*</span></label>
+          <FormSelect
+            control={control}
+            name="pattern"
+            placeholder="Select pattern"
+            options={["solid","striped","plaid","floral","polka-dot","geometric","camouflage","tie-dye"].map((v) => ({ value: v, label: v }))}
+            error={errors.pattern?.message}
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Material <span className="text-red-500">*</span></label>
+          <FormSelect
+            control={control}
+            name="material"
+            placeholder="Select material"
+            options={["nylon","leather","cotton","polyester","rubber","metal"].map((v) => ({ value: v, label: v }))}
+            error={errors.material?.message}
+          />
+        </div>
+      </div>
+      <div className="space-y-1">
+        <label className="text-sm font-medium">Size <span className="text-red-500">*</span></label>
+        <FormSelect
+          control={control}
+          name="size"
+          placeholder="Select size"
+          options={["XS","S","M","L","XL","XXL"].map((v) => ({ value: v, label: v }))}
+          error={errors.size?.message}
+        />
+      </div>
+      <ColorPicker control={control} name="colors" error={errors.colors?.message} />
+    </div>
+  );
+}
+
+function ToyFields({ control, register, errors }: any) {
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Pattern <span className="text-red-500">*</span></label>
+          <FormSelect
+            control={control}
+            name="pattern"
+            placeholder="Select pattern"
+            options={["solid","striped","spotted","printed","multi-color"].map((v) => ({ value: v, label: v }))}
+            error={errors.pattern?.message}
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Material <span className="text-red-500">*</span></label>
+          <FormSelect
+            control={control}
+            name="material"
+            placeholder="Select material"
+            options={["nylon","rubber","plush","rope","latex","plastic"].map((v) => ({ value: v, label: v }))}
+            error={errors.material?.message}
+          />
+        </div>
+      </div>
+      <div className="space-y-1">
+        <label className="text-sm font-medium">Size <span className="text-sm font-medium">*</span></label>
+        <FormSelect
+          control={control}
+          name="size"
+          placeholder="Select size"
+          options={["XS","S","M","L","XL","XXL"].map((v) => ({ value: v, label: v }))}
+          error={errors.size?.message}
+        />
+      </div>
+      <ColorPicker control={control} name="colors" error={errors.colors?.message} />
+    </div>
+  );
+}
+
+function GroomingFields({ control, register, errors }: any) {
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Skin Type <span className="text-red-500">*</span></label>
+          <FormSelect
+            control={control}
+            name="skinType"
+            placeholder="Select skin type"
+            options={["all","sensitive","dry","oily","normal"].map((v) => ({ value: v, label: v }))}
+            error={errors.skinType?.message}
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Coat Type <span className="text-red-500">*</span></label>
+          <FormSelect
+            control={control}
+            name="coatType"
+            placeholder="Select coat type"
+            options={["short","long","curly","double-coat","wire-haired","all"].map((v) => ({ value: v, label: v }))}
+            error={errors.coatType?.message}
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Scent</label>
+          <FormSelect
+            control={control}
+            name="scent"
+            placeholder="Select scent"
+            options={["unscented","lavender","citrus","mint","oatmeal","coconut"].map((v) => ({ value: v, label: v }))}
+          />
+        </div>
+        <div className="space-y-1">
+          <label className="text-sm font-medium">Volume</label>
+          <FormSelect
+            control={control}
+            name="volume"
+            placeholder="Select volume"
+            options={["50ml","100ml","200ml","250ml","500ml","1L"].map((v) => ({ value: v, label: v }))}
+          />
+        </div>
+      </div>
+      <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
+        <input
+          type="checkbox"
+          className="h-4 w-4 rounded border-gray-300 accent-green-600"
+          {...register("isHypoallergenic")}
+        />
+        Hypoallergenic formula
+      </label>
+    </div>
+  );
+}
+
+function HousingFields() {
+  return (
+    <div className="rounded-md bg-gray-50 px-4 py-3 text-sm text-gray-500">
+      No additional attributes required for housing products.
+    </div>
+  );
+}
+
+function HealthCareFields({ register, errors }: any) {
+  return (
+    <div className="space-y-4">
+      <div className="space-y-1">
+        <label className="text-sm font-medium">Usage Instructions</label>
+        <textarea
+          className="min-h-[80px] w-full rounded-md border border-black/10 px-3 py-2 text-sm outline-none focus:border-black/40"
+          placeholder="e.g. Administer once daily with food..."
+          {...register("usageInstructions")}
+        />
+      </div>
+      <div className="space-y-1">
+        <label className="text-sm font-medium">Warnings / Contraindications</label>
+        <textarea
+          className="min-h-[80px] w-full rounded-md border border-black/10 px-3 py-2 text-sm outline-none focus:border-black/40"
+          placeholder="e.g. Not suitable for pregnant animals..."
+          {...register("warnings")}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ─── Color multi-picker ───────────────────────────────────────────────────────
+
+function ColorPicker({ control, name, error }: { control: any; name: string; error?: string }) {
+  return (
+    <div className="space-y-2">
+      <label className="text-sm font-medium">
+        Colors <span className="text-red-500">*</span>
+      </label>
+      <Controller
+        control={control}
+        name={name as any}
+        render={({ field }) => (
+          <div className="flex flex-wrap gap-2">
+            {COLORS.map((color) => {
+              const selected = (field.value ?? []).includes(color);
+              return (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => {
+                    const current: string[] = field.value ?? [];
+                    field.onChange(
+                      selected ? current.filter((c) => c !== color) : [...current, color]
+                    );
+                  }}
+                  className={[
+                    "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all",
+                    selected
+                      ? "border-green-600 bg-green-50 text-green-700"
+                      : "border-gray-200 text-gray-600 hover:bg-gray-50",
+                  ].join(" ")}
+                >
+                  <span
+                    className="inline-block h-2.5 w-2.5 rounded-full border border-black/10"
+                    style={{ background: COLOR_HEX[color] }}
+                  />
+                  {color}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      />
+      <FieldError msg={error} />
+    </div>
+  );
+}
+
+// ─── Main wizard ──────────────────────────────────────────────────────────────
 
 export default function CreateProductWizard() {
   const [pending, startTransition] = useTransition();
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [completed, setCompleted] = useState<{ 1: boolean; 2: boolean; 3: boolean }>({
-    1: false,
-    2: false,
-    3: false,
-  });
-
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [completed, setCompleted] = useState({ 1: false, 2: false, 3: false });
+  const [pageLoading, setPageLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
-const [categoryOpen, setCategoryOpen] = useState(false);
-const [productCategoryOpen, setProductCategoryOpen] = useState(false); // add this
-
 
   const {
     register,
@@ -85,613 +406,511 @@ const [productCategoryOpen, setProductCategoryOpen] = useState(false); // add th
     trigger,
     reset,
     formState: { errors, isSubmitting },
-} = useForm<WizardData>({
-  resolver: zodResolver(ProductSchema),
-  shouldUnregister: false, 
-  mode: "onSubmit",
-  defaultValues: {
-    inStock: 0,
-    image: [], 
-  },
-});
-const [pageLoading, setPageLoading] = useState(true);
+  } = useForm<WizardData>({
+    resolver: zodResolver(ProductSchema),
+    shouldUnregister: false,
+    mode: "onSubmit",
+   defaultValues: {
+  inStock: 0,
+  image: [] as File[],
+  category: [] as PetCategorySlug[],
+  productCategory: undefined, 
+},
 
-  const selectedCategory = watch("category");
-  const selectedProductCategory = watch("productCategory");
+  });
 
-  const clearImage = (onChange?: (file: File | undefined) => void) => {
-    setPreviewImage(null);
-    onChange?.(undefined);
-    if (fileInputRef.current) fileInputRef.current.value = "";
+  const selectedProductCategory = watch("productCategory") as ProductCategorySlug | undefined;
+  const selectedCategories: PetCategorySlug[] = watch("category") ?? [];
+  const watchedImages: File[] = watch("image") ?? [];
+
+  useEffect(() => {
+    const t = setTimeout(() => setPageLoading(false), 700);
+    return () => clearTimeout(t);
+  }, []);
+
+  // ── Image handling ──────────────────────────────────────────────────────────
+
+  const handleImagesChange = (newFiles: File[], onChange: (f: File[]) => void, current: File[] = []) => {
+    const allowed = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    const valid = newFiles.filter((f) => allowed.includes(f.type) && f.size <= 5 * 1024 * 1024);
+    if (valid.length !== newFiles.length) toast.error("Only JPG/PNG/WEBP under 5MB allowed");
+    const merged = [...current, ...valid].slice(0, 3);
+    if (current.length + valid.length > 3) toast.error("Max 3 images allowed");
+    onChange(merged);
   };
 
-const handleImagesChange = (
-  newFiles: File[],
-  onChange: (files: File[]) => void,
-  current: File[] = [],
-) => {
-  const allowed = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-  const maxSize = 5 * 1024 * 1024;
-  const maxCount = 3;
+  // ── Pet category toggle (multi-select) ─────────────────────────────────────
 
-  const valid = newFiles.filter((f) => allowed.includes(f.type) && f.size <= maxSize);
+  const togglePetCategory = (slug: PetCategorySlug) => {
+    const current: PetCategorySlug[] = selectedCategories;
+    const next = current.includes(slug)
+      ? current.filter((c) => c !== slug)
+      : [...current, slug];
+    setValue("category", next, { shouldValidate: true });
+  };
 
-  if (valid.length !== newFiles.length) toast.error("Only JPG/PNG/WEBP under 5MB allowed");
+  // ── Product category select (single) ───────────────────────────────────────
 
-  const merged = [...current, ...valid].slice(0, maxCount);
+  const selectProductCategory = (slug: ProductCategorySlug) => {
+    setValue("productCategory", slug, { shouldValidate: true });
+  };
 
-  if (current.length + valid.length > maxCount) toast.error(`Max ${maxCount} images allowed`);
-
-  onChange(merged);
-};
+  // ── Navigation ─────────────────────────────────────────────────────────────
 
   const goNext = async () => {
-    const fields = stepFields[step];
-    const ok = await trigger(fields as any, { shouldFocus: true });
-
+    const fields = stepFields[step] as (keyof WizardData)[];
+    const ok = await trigger(fields, { shouldFocus: true });
     if (!ok) return;
-
     setCompleted((p) => ({ ...p, [step]: true }));
-    setStep((s) => (s === 1 ? 2 : 3));
+    setStep((s) => (s === 1 ? 2 : 3) as 1 | 2 | 3);
   };
 
-  const goBack = () => setStep((s) => (s === 3 ? 2 : 1));
+  const goBack = () => setStep((s) => (s === 3 ? 2 : 1) as 1 | 2 | 3);
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
 
   const onSubmit: SubmitHandler<WizardData> = async (data) => {
-  console.log("SUBMIT CHECK:", {
-    step,
-    category: data.category,
-    imageIsArray: Array.isArray(data.image),
-    imageLen: data.image?.length,
-  });
+    if (step !== 3 || pending || isSubmitting) return;
+    const ok = await trigger(undefined, { shouldFocus: true });
+    if (!ok) return;
 
-  if (step !== 3) return;
+    startTransition(async () => {
+      try {
+        const formData = new FormData();
+        formData.append("name", data.name);
+        formData.append("description", data.description);
+        formData.append("price", String(data.price));
+        formData.append("manufacturer", data.manufacturer);
+        formData.append("inStock", String(data.inStock ?? 0));
+        formData.append("productCategory", data.productCategory);
 
-const ok = await trigger(undefined, { shouldFocus: true });
-if (!ok) return;
+        // multi pet categories
+(data.category ?? []).forEach((c: string) => formData.append("category", c));
 
-console.log("schema.ts loaded (CreateProductWizard)");
+        // category-specific fields
+        if (data.productCategory === "food") {
+          if (data.nutritionalInfo) formData.append("nutritionalInfo", data.nutritionalInfo);
+          if (data.manufactureDate) formData.append("manufactureDate", data.manufactureDate);
+          if (data.expireDate) formData.append("expireDate", data.expireDate);
+        }
+        if (data.productCategory === "accessories" || data.productCategory === "toys") {
+          if ((data as any).pattern) formData.append("pattern", (data as any).pattern);
+          if ((data as any).material) formData.append("material", (data as any).material);
+          if ((data as any).size) formData.append("size", (data as any).size);
+          ((data as any).colors ?? []).forEach((c: string) => formData.append("colors[]", c));
+        }
+        if (data.productCategory === "grooming") {
+          if ((data as any).skinType) formData.append("skinType", (data as any).skinType);
+          if ((data as any).coatType) formData.append("coatType", (data as any).coatType);
+          if ((data as any).scent) formData.append("scent", (data as any).scent);
+          if ((data as any).volume) formData.append("volume", (data as any).volume);
+          formData.append("isHypoallergenic", String(!!(data as any).isHypoallergenic));
+        }
+        if (data.productCategory === "health-care") {
+          if ((data as any).usageInstructions) formData.append("usageInstructions", (data as any).usageInstructions);
+          if ((data as any).warnings) formData.append("warnings", (data as any).warnings);
+        }
 
-  if (pending || isSubmitting) return;
+        (data.image ?? []).forEach((f: File) => formData.append("image", f));
 
-  startTransition(async () => {
-    try {
-      const formData = new FormData();
+        const raw = await handleCreateProduct(formData);
+        const response = normalizeActionResponse(raw);
+        if (!response.success) throw new Error(response.message || "Create product failed");
 
-      formData.append("name", data.name);
-      formData.append("description", data.description);
-      formData.append("price", String(data.price));
-      formData.append("manufacturer", data.manufacturer);
+        toast.success(response.message || "Product created successfully");
+        reset({ inStock: 0, image: [], category: [] });
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        setCompleted({ 1: false, 2: false, 3: false });
+        setStep(1);
+      } catch (err) {
+        toast.error(getErrorMessage(err));
+      }
+    });
+  };
 
-          if (data.manufactureDate) {
-            formData.append(
-              "manufactureDate",
-              data.manufactureDate
-            );
-          }
-
-          if (data.expireDate) {
-            formData.append(
-              "expireDate",
-              data.expireDate
-            );
-          }
-      formData.append("nutritionalInfo", data.nutritionalInfo || "");
-      formData.append("category", data.category);
-      formData.append("inStock", String(data.inStock ?? 0));
-
-     data.image?.forEach((file) => formData.append("image", file));
-
-
-      const raw = await handleCreateProduct(formData);
-      const response = normalizeActionResponse(raw);
-
-      if (!response.success) throw new Error(response.message || "Create product failed");
-    toast.success(response.message || "Product created successfully ");
-
-      reset({ inStock: 0, image: [] }); 
-      if (fileInputRef.current) fileInputRef.current.value = "";
-      setCompleted({ 1: false, 2: false, 3: false });
-      setStep(1);
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    }
-  });
-};
-
+  // ── Stepper bubble ─────────────────────────────────────────────────────────
 
   const StepBubble = ({ n, label }: { n: 1 | 2 | 3; label: string }) => {
     const active = step === n;
     const done = completed[n];
-
     return (
       <button
         type="button"
-        onClick={() => {
-          // only allow going back to previous completed steps
-          if (n < step) setStep(n);
-        }}
+        onClick={() => { if (n < step) setStep(n); }}
         className="flex items-center gap-2 text-left"
       >
         <span
           className={[
-            "grid h-6 w-6 place-items-center rounded-full text-xs font-bold",
-            done ? "bg-green-600 text-white" : active ? "bg-green-600 text-white" : "bg-gray-200 text-gray-700",
+            "grid h-6 w-6 place-items-center rounded-full text-xs font-bold transition-colors",
+            done || active ? "bg-green-600 text-white" : "bg-gray-100 text-gray-500",
           ].join(" ")}
         >
-          {done ? "✓" : n}
+          {done ? <Check className="h-3 w-3" /> : n}
         </span>
-        <span className={active ? "text-sm font-semibold text-green-600" : "text-sm text-gray-500"}>
+        <span className={active ? "text-sm font-semibold text-green-600" : "text-sm text-gray-400"}>
           {label}
         </span>
       </button>
     );
   };
-useEffect(() => {
-  const t = setTimeout(() => setPageLoading(false), 700);
-  return () => clearTimeout(t);
-}, []);
 
-if (pageLoading) return <CreateProductStep1Skeleton />;
+  if (pageLoading) return <CreateProductStep1Skeleton />;
+
+  // ── Render ─────────────────────────────────────────────────────────────────
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      {/* Stepper top (only 1..3) */}
-      <div className="flex flex-wrap items-center gap-6">
-        <StepBubble n={1} label="Product Information" />
-        <StepBubble n={2} label="Product Detail Information" />
-        <StepBubble n={3} label="Product Variant Creation" />
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Stepper */}
+      <div className="flex flex-wrap items-center gap-4">
+        <StepBubble n={1} label="Basic Info" />
+        <div className="h-px w-6 bg-gray-200" />
+        <StepBubble n={2} label="Categories" />
+        <div className="h-px w-6 bg-gray-200" />
+        <StepBubble n={3} label="Product Details" />
       </div>
 
       <AnimatePresence mode="wait">
+
+        {/* ── STEP 1: Basic Info ── */}
         {step === 1 && (
           <motion.div
             key="step1"
-            initial={{ opacity: 0, x: 30 }}
+            initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -30 }}
-            transition={{ duration: 0.25 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
             className="space-y-4"
           >
+            <SectionLabel>Product information</SectionLabel>
+
+            {/* Name */}
             <div className="space-y-1">
-              <label className="text-sm font-medium">Product Name</label>
+              <label className="text-sm font-medium">
+                Product Name <span className="text-red-500">*</span>
+              </label>
               <input
                 type="text"
                 className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40"
+                placeholder="e.g. Royal Canin Adult Dog Food"
                 {...register("name")}
-                placeholder="e.g. Wai Wai noodles"
               />
-              {errors.name?.message && <p className="text-xs text-red-600">{errors.name.message}</p>}
+              <FieldError msg={errors.name?.message} />
             </div>
 
+            {/* Images */}
             <div className="space-y-2">
-              <label className="text-sm font-medium">Product Images</label>
-
-             <Controller
-  name="image"
-  control={control}
-  render={({ field: { value = [], onChange } }) => (
-    <div
-      className="rounded-xl border border-dashed border-gray-300 p-6"
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={(e) => {
-        e.preventDefault();
-        const files = Array.from(e.dataTransfer.files || []);
-        handleImagesChange(files, onChange, value);
-      }}
-    >
-      <input
-        ref={fileInputRef}
-        type="file"
-        multiple 
-        accept=".jpg,.jpeg,.png,.webp"
-        className="hidden"
-        onChange={(e) => {
-          const files = Array.from(e.target.files || []);
-          handleImagesChange(files, onChange, value);
-        }}
-      />
-
-      {value.length ? (
-        <div className="space-y-3">
-          <div className="flex flex-wrap gap-3">
-            {value.map((file: File, idx: number) => (
-              <div key={idx} className="relative">
-                <img
-                  src={URL.createObjectURL(file)}
-                  className="h-24 w-24 rounded-lg object-cover"
-                  alt={`preview-${idx}`}
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    const next = value.filter((_: any, i: number) => i !== idx);
-                    onChange(next);
-                  }}
-                  className="absolute -right-2 -top-2 rounded-full bg-red-500 px-2 py-1 text-xs text-white"
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="rounded-md bg-green-600 px-3 py-2 text-xs font-semibold text-white"
-          >
-            Add more images
-          </button>
-        </div>
-      ) : (
-        <button type="button" onClick={() => fileInputRef.current?.click()} className="w-full">
-          <div className="grid place-items-center gap-2 py-6">
-            <div className="grid h-10 w-10 place-items-center rounded-full bg-gray-100">
-              <Camera className="h-6 w-6" />
-            </div>
-            <p className="text-sm text-gray-600">Browse or Drag & Drop</p>
-            <p className="text-xs text-gray-400">Select up to 3 images</p>
-            <p className="text-xs text-red-700">Use png  image if possible</p>
-          </div>
-        </button>
-      )}
-    </div>
-  )}
-/>
-
-              {errors.image?.message && <p className="text-xs text-red-600">{String(errors.image.message)}</p>}
-            </div>
-
-
-            {/* Product Description */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium">Product Description</label>
-              <textarea
-                className="min-h-[110px] w-full rounded-md border border-black/10 px-3 py-2 text-sm outline-none focus:border-black/40"
-                {...register("description")}
-                placeholder="A detailed description of the product helps customers to learn more about the product."
+              <label className="text-sm font-medium">
+                Images <span className="text-red-500">*</span>
+              </label>
+              <Controller
+                name="image"
+                control={control}
+                render={({ field: { value = [], onChange } }) => (
+                  <div
+                    className="rounded-xl border border-dashed border-gray-300 p-5"
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      handleImagesChange(Array.from(e.dataTransfer.files ?? []), onChange, value);
+                    }}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      accept=".jpg,.jpeg,.png,.webp"
+                      className="hidden"
+                      onChange={(e) => handleImagesChange(Array.from(e.target.files ?? []), onChange, value)}
+                    />
+                    {value.length > 0 ? (
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap gap-3">
+                          {value.map((file: File, idx: number) => (
+                            <div key={idx} className="relative">
+                              <img
+                                src={URL.createObjectURL(file)}
+                                className="h-24 w-24 rounded-lg object-cover border border-black/10"
+                                alt={`preview-${idx}`}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => onChange(value.filter((_: any, i: number) => i !== idx))}
+                                className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full bg-red-500 text-white"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        {value.length < 3 && (
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="flex items-center gap-1.5 rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white"
+                          >
+                            <Plus className="h-3 w-3" /> Add more
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <button type="button" onClick={() => fileInputRef.current?.click()} className="w-full">
+                        <div className="grid place-items-center gap-2 py-6">
+                          <div className="grid h-10 w-10 place-items-center rounded-full bg-gray-100">
+                            <Camera className="h-5 w-5 text-gray-400" />
+                          </div>
+                          <p className="text-sm text-gray-500">Browse or drag & drop</p>
+                          <p className="text-xs text-gray-400">JPG, PNG, WEBP · max 5 MB · up to 3 images</p>
+                        </div>
+                      </button>
+                    )}
+                  </div>
+                )}
               />
-              {errors.description?.message && (
-                <p className="text-xs text-red-600">{errors.description.message}</p>
-              )}
+              <FieldError msg={String(errors.image?.message ?? "")} />
             </div>
-          </motion.div>
-        )}
 
-        {/* STEP 2 */}
-        {step === 2 && (
-          <motion.div
-            key="step2"
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -30 }}
-            transition={{ duration: 0.25 }}
-            className="space-y-4"
-          >
+            {/* Description */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium">
+                Description <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                className="min-h-[100px] w-full rounded-md border border-black/10 px-3 py-2 text-sm outline-none focus:border-black/40"
+                placeholder="Describe the product, its benefits, ingredients or materials..."
+                {...register("description")}
+              />
+              <FieldError msg={errors.description?.message} />
+            </div>
+
+            {/* Price + Stock */}
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <label className="text-sm font-medium">Product Price</label>
+                <label className="text-sm font-medium">
+                  Price <span className="text-red-500">*</span>
+                </label>
                 <input
                   type="number"
                   step="0.01"
-                  className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40 disabled:bg-gray-100"
-                  {...register("price", { valueAsNumber: true })}
+                  min="0"
+                  className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40"
                   placeholder="0.00"
+                  {...register("price", { valueAsNumber: true })}
                 />
-                {errors.price?.message && <p className="text-xs text-red-600">{errors.price.message}</p>}
+                <FieldError msg={errors.price?.message} />
               </div>
-         
-
-            {/* In Stock */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium">In Stock</label>
-              <input
-                type="number"
-                className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40"
-                {...register("inStock", { valueAsNumber: true })}
-              />
-              {errors.inStock?.message && <p className="text-xs text-red-600">{errors.inStock.message}</p>}
+              <div className="space-y-1">
+                <label className="text-sm font-medium">
+                  In Stock <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40"
+                  {...register("inStock", { valueAsNumber: true })}
+                />
+                <FieldError msg={errors.inStock?.message} />
+              </div>
             </div>
 
-            {/* Category modal picker */}
-          <div className="space-y-2">
-  <label className="text-sm font-medium">Product Category</label>
-  <input type="hidden" {...register("productCategory")} />
-  <button
-    type="button"
-    onClick={() => setProductCategoryOpen(true)}  
-    className="h-10 w-full rounded-md border border-black/10 px-3 text-left text-sm outline-none hover:bg-black/5"
-  >
-    {selectedProductCategory ? selectedProductCategory : "Select product category"}
-  </button>
-  {errors.productCategory?.message && (
-    <p className="text-xs text-red-600">{errors.productCategory.message}</p>
-  )}
-</div>
-
-<div className="space-y-2">
-  <label className="text-sm font-medium">Pet Category</label>
-  <input type="hidden" {...register("category")} />
-  <button
-    type="button"
-    onClick={() => setCategoryOpen(true)}
-    className="h-10 w-full rounded-md border border-black/10 px-3 text-left text-sm outline-none hover:bg-black/5"
-  >
-    {selectedCategory ? selectedCategory : "Select pet category"}
-  </button>
-  {errors.category?.message && (
-    <p className="text-xs text-red-600">{errors.category.message}</p>
-  )}
-<CategoryModal
-  categories={PRODUCT_CATEGORIES}
-  title="Select product type"
-  open={productCategoryOpen}
-  onClose={() => setProductCategoryOpen(false)}
-  selected={selectedProductCategory}
-  onSave={(value) => setValue("productCategory", value as ProductCategorySlug, { shouldValidate: true })}
-/>
-<CategoryModal
-  categories={PET_CATEGORIES}
-  title="Select pet category"
-  open={categoryOpen}
-  onClose={() => setCategoryOpen(false)}
-  selected={selectedCategory}
-  onSave={(value) => setValue("category", value as PetCategorySlug, { shouldValidate: true })}
-/>
-</div>
-
+            {/* Manufacturer */}
+            <div className="space-y-1">
+              <label className="text-sm font-medium">
+                Manufacturer <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40"
+                placeholder="e.g. Royal Canin"
+                {...register("manufacturer")}
+              />
+              <FieldError msg={errors.manufacturer?.message} />
+            </div>
           </motion.div>
         )}
 
-        {/* STEP 3 */}
-     {/* STEP 3 */}
-{step === 3 && (
-  <motion.div
-    key="step3"
-    initial={{ opacity: 0, x: 30 }}
-    animate={{ opacity: 1, x: 0 }}
-    exit={{ opacity: 0, x: -30 }}
-    transition={{ duration: 0.25 }}
-    className="space-y-4"
-  >
-    {/* Manufacturer — always shown */}
-    <div className="space-y-1">
-      <label className="text-sm font-medium">Manufacturer</label>
-      <input
-        type="text"
-        className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40"
-        {...register("manufacturer")}
-      />
-      {errors.manufacturer?.message && (
-        <p className="text-xs text-red-600">{errors.manufacturer.message}</p>
-      )}
-    </div>
-
-    {/* No product category selected yet */}
-    {!selectedProductCategory && (
-      <p className="rounded-md bg-yellow-50 px-4 py-3 text-sm text-yellow-700">
-        ⚠️ Please go back and select a product category first.
-      </p>
-    )}
-
-    {/* ── FOOD ── */}
-    {selectedProductCategory === "food" && (
-      <>
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Nutritional Info</label>
-          <input
-            type="text"
-            className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40"
-            {...register("nutritionalInfo")}
-          />
-          {(errors as any).nutritionalInfo?.message && (
-            <p className="text-xs text-red-600">{(errors as any).nutritionalInfo.message}</p>
-          )}
-        </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Manufacture Date</label>
-            <Controller control={control} name={"manufactureDate" as any} render={({ field }) => (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="h-10 w-full justify-start text-left font-normal">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {field.value ? format(new Date(field.value), "PPP") : <span className="text-muted-foreground">Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={field.value ? new Date(field.value) : undefined} onSelect={(d) => field.onChange(d ? d.toISOString() : null)} initialFocus />
-                </PopoverContent>
-              </Popover>
-            )} />
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Expire Date</label>
-            <Controller control={control} name={"expireDate" as any} render={({ field }) => (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="h-10 w-full justify-start text-left font-normal">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {field.value ? format(new Date(field.value), "PPP") : <span className="text-muted-foreground">Pick a date</span>}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar mode="single" selected={field.value ? new Date(field.value) : undefined} onSelect={(d) => field.onChange(d ? d.toISOString() : null)} initialFocus />
-                </PopoverContent>
-              </Popover>
-            )} />
-          </div>
-        </div>
-      </>
-    )}
-
-    {/* ── ACCESSORIES or TOYS ── */}
-    {(selectedProductCategory === "accessories" || selectedProductCategory === "toys") && (
-      <>
-        {/* Pattern */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Pattern</label>
-          <FormSelect
-  control={control as any}
-  name={"pattern" as any}
-  label="Pattern"
-  placeholder="Select pattern"
-  options={(selectedProductCategory === "accessories"
-    ? ["solid","striped","plaid","floral","polka-dot","geometric","camouflage","tie-dye"]
-    : ["solid","striped","spotted","printed","multi-color"]
-  ).map((p) => ({ value: p, label: p }))}
-  error={(errors as any).pattern?.message}
-/>
-        </div>
-
-        {/* Colors */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Colors</label>
-          <Controller control={control} name={"colors" as any} render={({ field }) => (
-            <div className="flex flex-wrap gap-2">
-              {["red","blue","orange","black","pink","green","yellow","purple","white","brown"].map((color) => {
-                const selected = (field.value ?? []).includes(color);
-                return (
-                  <button key={color} type="button"
-                    onClick={() => {
-                      const current = field.value ?? [];
-                      field.onChange(selected ? current.filter((c: string) => c !== color) : [...current, color]);
-                    }}
-                    className={`rounded-full border px-3 py-1 text-xs font-medium capitalize transition-colors ${selected ? "border-green-600 bg-green-600 text-white" : "border-gray-300 text-gray-600 hover:bg-gray-50"}`}
-                  >
-                    {color}
-                  </button>
-                );
-              })}
+        {/* ── STEP 2: Categories ── */}
+        {step === 2 && (
+          <motion.div
+            key="step2"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-6"
+          >
+            {/* Pet categories — multi-select */}
+            <div className="space-y-3">
+              <div>
+                <SectionLabel>Pet categories</SectionLabel>
+                <p className="text-xs text-gray-400 -mt-2 mb-3">Select all that apply</p>
+              </div>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-3">
+                {(Object.keys(PET_CATEGORY_META) as PetCategorySlug[]).map((slug) => {
+                  const { label, icon } = PET_CATEGORY_META[slug];
+                  const selected = selectedCategories.includes(slug);
+                  return (
+                    <button
+                      key={slug}
+                      type="button"
+                      onClick={() => togglePetCategory(slug)}
+                      className={[
+                        "relative flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all",
+                        selected
+                          ? "border-green-500 bg-green-50 text-green-700"
+                          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50",
+                      ].join(" ")}
+                    >
+                      <span className="text-base">{icon}</span>
+                      <span>{label}</span>
+                      {selected && (
+                        <span className="absolute right-2 top-2 grid h-4 w-4 place-items-center rounded-full bg-green-600">
+                          <Check className="h-2.5 w-2.5 text-white" />
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedCategories.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedCategories.map((slug) => (
+                    <span
+                      key={slug}
+                      className="flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700"
+                    >
+                      {PET_CATEGORY_META[slug].icon} {PET_CATEGORY_META[slug].label}
+                      <button type="button" onClick={() => togglePetCategory(slug)}>
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <FieldError msg={(errors as any).category?.message} />
             </div>
-          )} />
-          {(errors as any).colors?.message && <p className="text-xs text-red-600">{(errors as any).colors.message}</p>}
-        </div>
 
-        {/* Material */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Material</label>
-   <FormSelect
-  control={control as any}
-  name={"material" as any}
-  label="Material"
-  placeholder="Select material"
-  options={(selectedProductCategory === "accessories"
-    ? ["nylon","leather","cotton","polyester","rubber","metal"]
-    : ["nylon","rubber","plush","rope","latex","plastic"]
-  ).map((m) => ({ value: m, label: m }))}
-  error={(errors as any).material?.message}
-/>
-        </div>
-
-        {/* Size */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium">Size</label>
-             <FormSelect
-  control={control as any}
-  name={"size" as any}
-  label="Size"
-  placeholder="Select size"
-  options={["XS","S","M","L","XL","XXL"].map((s) => ({ value: s, label: s }))}
-  error={(errors as any).size?.message}
-/>
+            {/* Product type — single select */}
+            <div className="space-y-3">
+              <div>
+                <SectionLabel>Product type</SectionLabel>
+                <p className="text-xs text-gray-400 -mt-2 mb-3">Choose one — this determines the extra fields in the next step</p>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {(Object.keys(PRODUCT_CATEGORY_META) as ProductCategorySlug[]).map((slug) => {
+                  const { label, icon } = PRODUCT_CATEGORY_META[slug];
+                  const selected = selectedProductCategory === slug;
+                  return (
+                    <button
+                      key={slug}
+                      type="button"
+                      onClick={() => selectProductCategory(slug)}
+                      className={[
+                        "relative flex flex-col items-center gap-1 rounded-lg border py-3 text-sm font-medium transition-all",
+                        selected
+                          ? "border-green-500 bg-green-50 text-green-700"
+                          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50",
+                      ].join(" ")}
+                    >
+                      <span className="text-xl">{icon}</span>
+                      <span className="text-xs">{label}</span>
+                      {selected && (
+                        <span className="absolute right-2 top-2 grid h-4 w-4 place-items-center rounded-full bg-green-600">
+                          <Check className="h-2.5 w-2.5 text-white" />
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <FieldError msg={(errors as any).productCategory?.message} />
             </div>
-      </>
-    )}
+          </motion.div>
+        )}
 
-    {/* ── GROOMING ── */}
-    {selectedProductCategory === "grooming" && (
-      <>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Skin Type</label>
-            <select className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40" {...register("skinType" as any)}>
-              <option value="">Select skin type</option>
-              {["all","sensitive","dry","oily","normal"].map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-            {(errors as any).skinType?.message && <p className="text-xs text-red-600">{(errors as any).skinType.message}</p>}
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Coat Type</label>
-            <FormSelect
-  control={control as any}
-  name={"coatType" as any}
-  label="Coat Type"
-  placeholder="Select coat type"
-  options={["short","long","curly","double-coat","wire-haired","all"].map((c) => ({ value: c, label: c }))}
-  error={(errors as any).coatType?.message}
-/>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Scent</label>
-           <FormSelect
-  control={control as any}
-  name={"scent" as any}
-  label="Scent"
-  placeholder="Select scent"
-  options={["unscented","lavender","citrus","mint","oatmeal","coconut"].map((s) => ({ value: s, label: s }))}
-/>
-          </div>
-          <div className="space-y-1">
-            <label className="text-sm font-medium">Volume</label>
-            <select className="h-10 w-full rounded-md border border-black/10 px-3 text-sm outline-none focus:border-black/40" {...register("volume" as any)}>
-              <option value="">Select volume</option>
-              {["50ml","100ml","200ml","250ml","500ml","1L"].map((v) => <option key={v} value={v}>{v}</option>)}
-            </select>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="hypoallergenic" {...register("isHypoallergenic" as any)} className="h-4 w-4 rounded border-gray-300" />
-          <label htmlFor="hypoallergenic" className="text-sm font-medium">Hypoallergenic</label>
-        </div>
-      </>
-    )}
+        {/* ── STEP 3: Product Details (conditional by productCategory) ── */}
+        {step === 3 && (
+          <motion.div
+            key="step3"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-5"
+          >
+            {/* Summary badge */}
+            {selectedProductCategory && (
+              <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 text-sm text-green-700">
+                <span className="text-base">{PRODUCT_CATEGORY_META[selectedProductCategory]?.icon}</span>
+                <span className="font-medium">{PRODUCT_CATEGORY_META[selectedProductCategory]?.label}</span>
+                {selectedCategories.length > 0 && (
+                  <span className="text-green-500">
+                    · for {selectedCategories.map((c) => PET_CATEGORY_META[c].label).join(", ")}
+                  </span>
+                )}
+              </div>
+            )}
 
-    {/* ── HOUSING / HEALTH-CARE ── */}
-    {(selectedProductCategory === "housing" || selectedProductCategory === "health-care") && (
-      <p className="rounded-md bg-gray-50 px-4 py-3 text-sm text-gray-500">
-        No additional attributes required for this category.
-      </p>
-    )}
+            {!selectedProductCategory && (
+              <div className="rounded-md bg-yellow-50 px-4 py-3 text-sm text-yellow-700">
+                ⚠️ Please go back and select a product type first.
+              </div>
+            )}
 
-  </motion.div>
-)}
+            {/* Conditional fields */}
+            {selectedProductCategory === "food" && (
+              <FoodFields control={control} register={register} errors={errors} />
+            )}
+            {selectedProductCategory === "accessories" && (
+              <AccessoryFields control={control} register={register} errors={errors} />
+            )}
+            {selectedProductCategory === "toys" && (
+              <ToyFields control={control} register={register} errors={errors} />
+            )}
+            {selectedProductCategory === "grooming" && (
+              <GroomingFields control={control} register={register} errors={errors} />
+            )}
+            {selectedProductCategory === "housing" && (
+              <HousingFields />
+            )}
+            {selectedProductCategory === "health-care" && (
+              <HealthCareFields register={register} errors={errors} />
+            )}
+          </motion.div>
+        )}
       </AnimatePresence>
 
-      {/* Footer buttons */}
-      <div className="flex items-center justify-between gap-3 pt-2">
+      {/* Footer */}
+      <div className="flex items-center justify-between gap-3 border-t border-gray-100 pt-4">
         <button
           type="button"
           onClick={() => {
             if (step === 1) {
-              reset();
-              setPreviewImage(null);
+              reset({ inStock: 0, image: [], category: [] });
               if (fileInputRef.current) fileInputRef.current.value = "";
               setCompleted({ 1: false, 2: false, 3: false });
-              toast.info("Cleared");
+              toast.info("Form cleared");
               return;
             }
             goBack();
           }}
-          className="h-10 rounded-md border border-gray-200 px-4 text-sm font-semibold hover:bg-black/5"
+          className="h-10 rounded-md border border-gray-200 px-4 text-sm font-medium hover:bg-gray-50"
         >
-          {step === 1 ? "Cancel" : "Back"}
+          {step === 1 ? "Cancel" : "← Back"}
         </button>
 
         {step < 3 ? (
           <button
             type="button"
             onClick={goNext}
-            className="h-10 rounded-md bg-green-600 px-6 text-sm font-semibold text-white hover:opacity-90"
+            className="h-10 rounded-md bg-green-600 px-6 text-sm font-semibold text-white hover:bg-green-700"
           >
-            Continue
+            Continue →
           </button>
         ) : (
           <button
             type="submit"
             disabled={isSubmitting || pending}
-            className="h-10 rounded-md bg-green-600 px-6 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
+            className="h-10 rounded-md bg-green-600 px-6 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-60"
           >
             {isSubmitting || pending ? "Saving..." : "Create Product"}
           </button>
