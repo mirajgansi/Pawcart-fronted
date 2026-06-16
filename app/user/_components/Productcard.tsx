@@ -115,13 +115,13 @@ export default function ProductCard({
       <Link href={`/user/products/${product._id}`} className="block">
         <div className="aspect-square overflow-hidden relative" style={{ backgroundColor: "var(--color-tertiary)" }}>
         <Image
-  src={buildImageUrl(product.image)}
-  alt={product.name}
-  fill
-  unoptimized
-  className="object-cover group-hover:scale-105 transition-transform duration-500"
-  sizes="(max-width: 640px) 50vw, 25vw"
-/>
+        src={buildImageUrl(product.image)}
+        alt={product.name}
+        fill
+        unoptimized
+        className="object-cover group-hover:scale-105 transition-transform duration-500"
+        sizes="(max-width: 640px) 50vw, 25vw"
+      />
 
           {/* Badge */}
           {badge && (

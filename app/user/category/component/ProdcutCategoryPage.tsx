@@ -97,11 +97,9 @@ function CardSkeleton() {
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
-export default function ProductCategoryPage() {
+export default function ProductCategoryPage({ petSlug, productCategory }: { petSlug: string; productCategory: string }) {
   const params = useParams();
-  const petSlug        = params?.petSlug as string;
-  const productCategory = params?.productCategory as string;
-
+  
   const hero          = HERO_CONFIG[productCategory] ?? HERO_CONFIG["food"];
  const categoryLabel = PRODUCT_LABELS[productCategory] ?? productCategory;
 
