@@ -50,12 +50,12 @@ export default function Nav({
         Trending
       </Link>
  <Link
-        href="/user/grooming-kits"
+        href="/user/groomingkits"
         onClick={onNavigate}
         className={linkBase}
-        style={getStyle("/user/grooming-kits")}
+        style={getStyle("/user/groomingkits")}
         onMouseEnter={e => (e.currentTarget.style.color = "var(--interactive-primary)")}
-        onMouseLeave={e => (e.currentTarget.style.color = getStyle("/user/grooming-kits").color)}
+        onMouseLeave={e => (e.currentTarget.style.color = getStyle("/user/groomingkits").color)}
       >
         Grooming kits
       </Link>

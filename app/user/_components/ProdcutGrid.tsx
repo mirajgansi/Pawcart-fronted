@@ -253,30 +253,38 @@ export default function ProductsGrid({
               <SkeletonCard key={i} idx={i} />
             ))
           : products.map((p) => {
-              const isFav = favorites[p._id] ?? false;
+  const isFav = favorites[p._id] ?? false;
 
-              return (
-                <div key={p._id} className="relative">
-                  <ProductCard
-                    id={p._id}
-                    image={buildImageUrl(p.image)}
-                    name={p.name}
-                    price={Number(p.price)}
-                    unit={p.unit ?? "per kg"}
-                    inStock={p.inStock ?? 0}
-                    isFavorite={isFav}
-                    onToggleWishlist={() => toggleFavorite(p._id)}
-                    onAddToCart={() => onAddCart(p)}
-                  />
+  return (
+    <div key={p._id} className="relative">
+      <ProductCard
+        product={{
+          _id: p._id,
+          name: p.name,
+          price: Number(p.price),
+          image: buildImageUrl(p.image),
+          unit: p.unit,
+          inStock: p.inStock ?? 0,
+          productCategory: p.category,
+          averageRating: undefined,
+          reviewCount: undefined,
+          totalSold: undefined,
+          createdAt: undefined,
+          badge: undefined,
+        }}
+        isFavorite={isFav}
+        onToggleWishlist={() => toggleFavorite(p._id)}
+        onAddToCart={() => onAddCart(p)}
+      />
 
-                  {adding[p._id] && (
-                    <div className="absolute inset-0 grid place-items-center rounded-3xl bg-white/60">
-                      <span className="text-sm font-medium">Adding…</span>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+      {adding[p._id] && (
+        <div className="absolute inset-0 grid place-items-center rounded-3xl bg-white/60">
+          <span className="text-sm font-medium">Adding…</span>
+        </div>
+      )}
+    </div>
+  );
+})}
       </div>
 
       {!loading && products.length === 0 && (

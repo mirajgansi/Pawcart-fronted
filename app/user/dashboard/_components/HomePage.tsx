@@ -21,6 +21,11 @@ type Product = {
   inStock: number;
   image?: string;
   productCategory?: string;
+  averageRating?: number;
+  reviewCount?: number;
+  totalSold?: number;    // ← needed for BEST SELLER badge
+  createdAt?: string;   // ← needed for NEW ARRIVAL badge
+  badge?: string;       // ← needed for manual override
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -170,20 +175,27 @@ export default function HomePage() {
             ? Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)
             : trending.length > 0
               ? trending.map((p) => (
-                  <ProductCard
-                    key={p._id}
-                    id={p._id}
-                    image={buildImageUrl(p.image)}
-                    name={p.name}
-                    price={Number(p.price)}
-                    unit={p.unit ?? "per kg"}
-                    inStock={Number(p.inStock ?? 0)}
-                    category={p.productCategory}
-                    isFavorite={!!favorites[p._id]}
-                    onToggleWishlist={() => toggleFav(p._id)}
-                    onAddToCart={() => {}}
-                  />
-                ))
+  <ProductCard
+    key={p._id}
+    product={{
+      _id: p._id,
+      image: buildImageUrl(p.image),
+      name: p.name,
+      price: Number(p.price),
+      unit: p.unit ?? "per kg",
+      inStock: Number(p.inStock ?? 0),
+      productCategory: p.productCategory,
+      averageRating: p.averageRating,
+      reviewCount: p.reviewCount,
+      totalSold: p.totalSold,      // ← pass this
+      createdAt: p.createdAt,      // ← pass this
+    }}
+    isFavorite={!!favorites[p._id]}
+    onToggleWishlist={() => toggleFav(p._id)}
+    onAddToCart={() => {}}
+  />
+))
+
               : (
                 <p className="col-span-4 text-center text-sm text-[var(--text-secondary)] py-8">
                   No trending products right now.
@@ -209,20 +221,22 @@ export default function HomePage() {
             ? Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)
             : bestSellers.length > 0
               ? bestSellers.map((p) => (
-                  <ProductCard
-                    key={p._id}
-                    id={p._id}
-                    image={buildImageUrl(p.image)}
-                    name={p.name}
-                    price={Number(p.price)}
-                    unit={p.unit ?? "per kg"}
-                    inStock={Number(p.inStock ?? 0)}
-                    category={p.productCategory}
-                    isFavorite={!!favorites[p._id]}
-                    onToggleWishlist={() => toggleFav(p._id)}
-                    onAddToCart={() => {}}
-                  />
-                ))
+  <ProductCard
+    key={p._id}
+    product={{
+      _id: p._id,
+      image: buildImageUrl(p.image),
+      name: p.name,
+      price: Number(p.price),
+      unit: p.unit ?? "per kg",
+      inStock: Number(p.inStock ?? 0),
+      productCategory: p.productCategory,
+    }}
+    isFavorite={!!favorites[p._id]}
+    onToggleWishlist={() => toggleFav(p._id)}
+    onAddToCart={() => {}}
+  />
+))
               : (
                 <p className="col-span-4 text-center text-sm text-[var(--text-secondary)] py-8">
                   No best sellers found.

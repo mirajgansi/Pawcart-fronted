@@ -424,13 +424,15 @@ export default function ProductCategoryPage() {
               ? displayed.map((p) => (
                   <ProductCard
                     key={p._id}
-                    id={p._id}
-                    image={buildImageUrl(p.image)}
-                    name={p.name}
-                    price={Number(p.price)}
-                    unit={p.unit ?? "per kg"}
-                    category={categoryLabel}          
-                    inStock={Number(p.inStock ?? 0)}
+                    product={{
+                      _id: p._id,
+                      name: p.name,
+                      price: Number(p.price),
+                      image: buildImageUrl(p.image),
+                      unit: p.unit ?? "",
+                      inStock: Number(p.inStock ?? 0),
+                      productCategory: categoryLabel,
+                    }}
                     isFavorite={!!favorites[p._id]}
                     onToggleWishlist={() => handleToggleWishlist(p._id)}
                     onAddToCart={() => handleAddToCart(p._id)}
