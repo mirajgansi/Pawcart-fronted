@@ -3,9 +3,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ShoppingCart, Heart, Star, SlidersHorizontal, ChevronDown, Search, X } from "lucide-react";
-import { handleGetAllProducts } from "@/lib/actions/product-action";
-import { handleToggleFavoriteProduct } from "@/lib/actions/product-action";
+import { SlidersHorizontal, ChevronDown, Search, X } from "lucide-react";
+import { toast } from "react-toastify";
+import { handleGetAllProducts, handleToggleFavoriteProduct } from "@/lib/actions/product-action";
+import ProductCard from "../../_components/Productcard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -22,6 +23,7 @@ type Product = {
   productCategory: string;
   category: string[];
   totalSold?: number;
+  unit?: string;
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -36,124 +38,45 @@ const PRODUCT_LABELS: Record<string, string> = {
   grooming: "Grooming", toys: "Toys", "health-care": "Health Care",
 };
 
-const HERO_CONFIG: Record<string, { headline: string; sub: string; badge: string; bg: string }> = {
-  food:         { headline: "Nutrition Tailored\nfor Longevity", sub: "Scientifically formulated with ingredients to ensure your companion lives vibrant & healthy.", badge: "Premium Nutrition", bg: "from-stone-800 via-amber-950 to-stone-900" },
-  accessories:  { headline: "Style Meets\nFunction", sub: "From collars to carriers — gear that looks good and works harder.", badge: "Top Accessories", bg: "from-slate-800 via-indigo-950 to-slate-900" },
-  toys:         { headline: "Playtime\nElevated", sub: "Stimulating toys designed to engage, reward, and bond.", badge: "Enrichment Picks", bg: "from-emerald-900 via-teal-950 to-emerald-900" },
-  housing:      { headline: "Comfort\nThey'll Love", sub: "Beds, crates, and habitats built for rest and security.", badge: "Home Essentials", bg: "from-orange-900 via-rose-950 to-orange-900" },
-  grooming:     { headline: "Groom With\nConfidence", sub: "Gentle formulas and professional-grade tools for every coat type.", badge: "Grooming Essentials", bg: "from-violet-900 via-purple-950 to-violet-900" },
-  "health-care":{ headline: "Wellness\nFirst", sub: "Supplements, treatments and daily care for a longer, happier life.", badge: "Health & Wellness", bg: "from-cyan-900 via-sky-950 to-cyan-900" },
+const HERO_CONFIG: Record<string, {
+  headline: string;
+  sub: string;
+  badge: string;
+  image: string;   // background image path (put in /public/heroes/)
+}> = {
+  food:          { headline: "Nutrition Tailored\nfor Longevity",    sub: "Scientifically formulated ingredients to keep your companion vibrant & healthy.", badge: "Premium Nutrition",    image: "/heroes/food.jpg" },
+  accessories:   { headline: "Style Meets\nFunction",                sub: "From collars to carriers — gear that looks good and works harder.",               badge: "Top Accessories",      image: "/heroes/accessories.jpg" },
+  toys:          { headline: "Playtime\nElevated",                   sub: "Stimulating toys designed to engage, reward, and bond.",                          badge: "Enrichment Picks",     image: "/heroes/toys.jpg" },
+  housing:       { headline: "Comfort\nThey'll Love",                sub: "Beds, crates, and habitats built for rest and security.",                         badge: "Home Essentials",      image: "/heroes/housing.jpg" },
+  grooming:      { headline: "Groom With\nConfidence",               sub: "Gentle formulas and professional-grade tools for every coat type.",               badge: "Grooming Essentials",  image: "/heroes/grooming.jpg" },
+  "health-care": { headline: "Wellness\nFirst",                      sub: "Supplements, treatments and daily care for a longer, happier life.",              badge: "Health & Wellness",    image: "/heroes/health-care.jpg" },
 };
 
 const SORT_OPTIONS = [
-  { value: "featured", label: "Featured" },
-  { value: "price-asc", label: "Price: Low to High" },
+  { value: "featured",   label: "Featured" },
+  { value: "price-asc",  label: "Price: Low to High" },
   { value: "price-desc", label: "Price: High to Low" },
-  { value: "rating", label: "Top Rated" },
-  { value: "newest", label: "Newest" },
+  { value: "rating",     label: "Top Rated" },
+  { value: "newest",     label: "Newest" },
 ];
 
 const PET_FILTERS = [
-  { slug: "all", label: "All Types" },
-  { slug: "dogs", label: "Dog" },
-  { slug: "cats", label: "Cat" },
-  { slug: "birds", label: "Bird" },
-  { slug: "fish", label: "Fish" },
-  { slug: "rabbits", label: "Rabbit" },
+  { slug: "all",        label: "All Types" },
+  { slug: "dogs",       label: "Dog" },
+  { slug: "cats",       label: "Cat" },
+  { slug: "birds",      label: "Bird" },
+  { slug: "fish",       label: "Fish" },
+  { slug: "rabbits",    label: "Rabbit" },
   { slug: "small-pets", label: "Small Pet" },
 ];
 
-// ─── Star Rating ──────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function Stars({ rating, count }: { rating: number; count: number }) {
-  return (
-    <div className="flex items-center gap-1">
-      {[1, 2, 3, 4, 5].map((s) => (
-        <Star
-          key={s}
-          className="h-3 w-3"
-          fill={s <= Math.round(rating) ? "#f59e0b" : "none"}
-          stroke={s <= Math.round(rating) ? "#f59e0b" : "#d1d5db"}
-        />
-      ))}
-      <span className="text-[11px] text-gray-400 ml-0.5">({count})</span>
-    </div>
-  );
-}
-
-// ─── Product Card ─────────────────────────────────────────────────────────────
-
-function ProductCard({ product }: { product: Product }) {
-  const [faved, setFaved] = useState(false);
-  const [adding, setAdding] = useState(false);
-
-  const img = product.images?.[0] ?? product.image ?? "/placeholder.png";
-  const isNew = product.totalSold !== undefined && product.totalSold < 10;
-  const isBestSeller = (product.totalSold ?? 0) > 50;
-
-  return (
-    <div className="group relative bg-white rounded-2xl overflow-hidden border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-      {/* Badge */}
-      {(isNew || isBestSeller) && (
-        <div className={`absolute top-3 left-3 z-10 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${isBestSeller ? "bg-amber-400 text-amber-900" : "bg-emerald-500 text-white"}`}>
-          {isBestSeller ? "Best Seller" : "New Arrival"}
-        </div>
-      )}
-
-      {/* Favorite */}
-      <button
-        onClick={async () => {
-          setFaved((f) => !f);
-          await handleToggleFavoriteProduct(product._id);
-        }}
-        className="absolute top-3 right-3 z-10 h-8 w-8 grid place-items-center rounded-full bg-white/90 shadow-sm hover:scale-110 transition-transform"
-      >
-        <Heart className={`h-4 w-4 ${faved ? "fill-red-500 stroke-red-500" : "stroke-gray-400"}`} />
-      </button>
-
-      {/* Image */}
-      <Link href={`/products/${product._id}`}>
-        <div className="aspect-square overflow-hidden bg-gray-50">
-          <img
-            src={img}
-            alt={product.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-          />
-        </div>
-      </Link>
-
-      {/* Info */}
-      <div className="p-3.5 space-y-2">
-        <Stars rating={product.averageRating} count={product.reviewCount} />
-
-        <Link href={`/products/${product._id}`}>
-          <h3 className="text-sm font-semibold text-gray-800 leading-snug line-clamp-2 hover:text-emerald-700 transition-colors">
-            {product.name}
-          </h3>
-        </Link>
-
-        <p className="text-xs text-gray-400 line-clamp-2">{product.description}</p>
-
-        <div className="flex items-center justify-between pt-1">
-          <span className="text-base font-bold text-gray-900">${product.price.toFixed(2)}</span>
-          <button
-            disabled={product.inStock === 0 || adding}
-            onClick={() => {
-              setAdding(true);
-              setTimeout(() => setAdding(false), 800);
-            }}
-            className="h-8 w-8 grid place-items-center rounded-full bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            <ShoppingCart className="h-3.5 w-3.5" />
-          </button>
-        </div>
-
-        {product.inStock === 0 && (
-          <p className="text-[11px] text-red-400 font-medium">Out of stock</p>
-        )}
-      </div>
-    </div>
-  );
+function buildImageUrl(image?: string) {
+  if (!image) return "/cookie.jpg";
+  if (image.startsWith("http")) return image;
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+  return `${base}/${image.replace(/^\/+/, "")}`;
 }
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
@@ -176,19 +99,19 @@ function CardSkeleton() {
 
 export default function ProductCategoryPage() {
   const params = useParams();
-  const petSlug = params?.petSlug as string;
+  const petSlug        = params?.petSlug as string;
   const productCategory = params?.productCategory as string;
 
-  const hero = HERO_CONFIG[productCategory] ?? HERO_CONFIG["food"];
-  const petLabel = PET_LABELS[petSlug] ?? "All Pets";
-  const categoryLabel = PRODUCT_LABELS[productCategory] ?? productCategory;
+  const hero          = HERO_CONFIG[productCategory] ?? HERO_CONFIG["food"];
+ const categoryLabel = PRODUCT_LABELS[productCategory] ?? productCategory;
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [products,  setProducts]  = useState<Product[]>([]);
+  const [loading,   setLoading]   = useState(true);
   const [activePet, setActivePet] = useState(petSlug ?? "all");
-  const [sort, setSort] = useState("featured");
-  const [search, setSearch] = useState("");
-  const [showSort, setShowSort] = useState(false);
+  const [sort,      setSort]      = useState("featured");
+  const [search,    setSearch]    = useState("");
+  const [showSort,  setShowSort]  = useState(false);
+  const [favorites, setFavorites] = useState<Record<string, boolean>>({});
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -208,7 +131,25 @@ export default function ProductCategoryPage() {
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
-  // Client-side sort + search
+  // ── Wishlist toggle ──────────────────────────────────────────────────────────
+  const handleToggleWishlist = async (productId: string) => {
+    const wasOn = !!favorites[productId];
+    setFavorites((prev) => ({ ...prev, [productId]: !wasOn }));
+    try {
+      await handleToggleFavoriteProduct(productId);
+      toast.success(wasOn ? "Removed from wishlist" : "Added to wishlist");
+    } catch {
+      setFavorites((prev) => ({ ...prev, [productId]: wasOn }));
+      toast.error("Failed to update wishlist");
+    }
+  };
+
+  // ── Add to cart ──────────────────────────────────────────────────────────────
+  const handleAddToCart = (_productId: string) => {
+    toast.success("Added to cart");
+  };
+
+  // ── Client-side sort + search ────────────────────────────────────────────────
   const displayed = [...products]
     .filter((p) =>
       search.trim()
@@ -217,47 +158,104 @@ export default function ProductCategoryPage() {
         : true
     )
     .sort((a, b) => {
-      if (sort === "price-asc") return a.price - b.price;
+      if (sort === "price-asc")  return a.price - b.price;
       if (sort === "price-desc") return b.price - a.price;
-      if (sort === "rating") return b.averageRating - a.averageRating;
+      if (sort === "rating")     return b.averageRating - a.averageRating;
       return 0;
     });
 
   return (
-    <div className="min-h-screen bg-[#f7f5f2]">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--bg-page)" }}>
 
       {/* ── Hero ── */}
-      <div className={`relative bg-gradient-to-br ${hero.bg} overflow-hidden`}>
-        <div className="absolute inset-0 opacity-10"
-          style={{ backgroundImage: "radial-gradient(circle at 70% 50%, white 0%, transparent 60%)" }}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          backgroundImage: `url(${hero.image})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          minHeight: "280px",
+        }}
+      >
+        {/* Dark red gradient overlay — keeps text legible over any photo */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(105deg, rgba(127,29,29,0.92) 0%, rgba(166,30,30,0.75) 50%, rgba(92,17,17,0.55) 100%)",
+          }}
         />
-        <div className="relative max-w-6xl mx-auto px-5 py-12 flex items-end justify-between gap-6">
+
+        {/* Subtle radial shine */}
+        <div
+          className="absolute inset-0 opacity-20"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 75% 40%, #f29e9e 0%, transparent 60%)",
+          }}
+        />
+
+        <div className="relative max-w-6xl mx-auto px-5 py-14 flex items-end justify-between gap-6">
           <div className="space-y-3 max-w-lg">
-            <span className="inline-block text-[11px] font-bold uppercase tracking-widest text-white/60 border border-white/20 rounded-full px-3 py-1">
+            {/* Badge */}
+            <span
+              className="inline-block text-[11px] font-bold uppercase tracking-widest rounded-full px-3 py-1 border"
+              style={{
+                color: "#f9c5c5",
+                borderColor: "rgba(249,197,197,0.35)",
+                backgroundColor: "rgba(249,197,197,0.10)",
+              }}
+            >
               {hero.badge}
             </span>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-white leading-tight whitespace-pre-line">
+
+            {/* Headline */}
+            <h1 className="text-3xl md:text-4xl font-extrabold leading-tight whitespace-pre-line text-white">
               {hero.headline}
             </h1>
-            <p className="text-sm text-white/60 leading-relaxed max-w-sm">{hero.sub}</p>
-            <button className="mt-2 inline-flex items-center gap-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-sm font-semibold px-5 py-2.5 transition-colors">
+
+            {/* Sub */}
+            <p className="text-sm leading-relaxed max-w-sm" style={{ color: "#f9c5c5" }}>
+              {hero.sub}
+            </p>
+
+            {/* CTA */}
+            <button
+              className="mt-2 inline-flex items-center gap-2 rounded-full text-sm font-semibold px-5 py-2.5 transition-colors border"
+              style={{
+                backgroundColor: "rgba(249,197,197,0.15)",
+                borderColor: "rgba(249,197,197,0.35)",
+                color: "#ffffff",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.backgroundColor = "rgba(249,197,197,0.28)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.backgroundColor = "rgba(249,197,197,0.15)")
+              }
+            >
               Explore {categoryLabel}
             </button>
           </div>
 
-          {/* Breadcrumb pill */}
-          <div className="hidden md:flex items-center gap-2 text-xs text-white/40 self-start mt-2">
-            <Link href="/" className="hover:text-white/70">Home</Link>
+          {/* Breadcrumb */}
+          <div className="hidden md:flex items-center gap-2 text-xs self-start mt-2" style={{ color: "#f29e9e99" }}>
+            <Link href="/" className="hover:text-white transition-colors">Home</Link>
+                 
             <span>/</span>
-            <Link href={`/user/category/${petSlug}`} className="hover:text-white/70 capitalize">{petLabel}</Link>
-            <span>/</span>
-            <span className="text-white/80 capitalize">{categoryLabel}</span>
+            <span className="capitalize" style={{ color: "#f9c5c5" }}>{categoryLabel}</span>
           </div>
         </div>
       </div>
 
       {/* ── Filter bar ── */}
-      <div className="sticky top-0 z-20 bg-white/80 backdrop-blur border-b border-gray-100 shadow-sm">
+      <div
+        className="sticky top-0 z-20 border-b shadow-sm backdrop-blur"
+        style={{
+          backgroundColor: "rgba(254,242,242,0.90)",
+          borderColor: "var(--border-default)",
+        }}
+      >
         <div className="max-w-6xl mx-auto px-5 py-3 flex items-center justify-between gap-4 flex-wrap">
 
           {/* Pet type tabs */}
@@ -266,11 +264,32 @@ export default function ProductCategoryPage() {
               <button
                 key={f.slug}
                 onClick={() => setActivePet(f.slug)}
-                className={`text-xs font-semibold px-3 py-1.5 rounded-full border transition-all ${
+                className="text-xs font-semibold px-3 py-1.5 rounded-full border transition-all"
+                style={
                   activePet === f.slug
-                    ? "bg-emerald-600 border-emerald-600 text-white"
-                    : "border-gray-200 text-gray-500 hover:border-gray-400"
-                }`}
+                    ? {
+                        backgroundColor: "var(--interactive-primary)",
+                        borderColor: "var(--interactive-primary)",
+                        color: "#ffffff",
+                      }
+                    : {
+                        backgroundColor: "transparent",
+                        borderColor: "var(--border-default)",
+                        color: "var(--text-secondary)",
+                      }
+                }
+                onMouseEnter={(e) => {
+                  if (activePet !== f.slug) {
+                    e.currentTarget.style.borderColor = "var(--interactive-primary)";
+                    e.currentTarget.style.color = "var(--interactive-primary)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (activePet !== f.slug) {
+                    e.currentTarget.style.borderColor = "var(--border-default)";
+                    e.currentTarget.style.color = "var(--text-secondary)";
+                  }
+                }}
               >
                 {f.label}
               </button>
@@ -279,18 +298,36 @@ export default function ProductCategoryPage() {
 
           {/* Right: search + sort */}
           <div className="flex items-center gap-2">
+
             {/* Search */}
             <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+              <Search
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5"
+                style={{ color: "var(--text-secondary)" }}
+              />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search..."
-                className="pl-8 pr-8 h-8 text-xs rounded-full border border-gray-200 bg-gray-50 outline-none focus:border-emerald-400 w-40"
+                className="pl-8 pr-8 h-8 text-xs rounded-full outline-none w-40 border"
+                style={{
+                  backgroundColor: "#fff",
+                  borderColor: "var(--border-default)",
+                  color: "var(--text-primary)",
+                }}
+                onFocus={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--focus-ring)")
+                }
+                onBlur={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--border-default)")
+                }
               />
               {search && (
-                <button onClick={() => setSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2">
-                  <X className="h-3 w-3 text-gray-400" />
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2"
+                >
+                  <X className="h-3 w-3" style={{ color: "var(--text-secondary)" }} />
                 </button>
               )}
             </div>
@@ -299,19 +336,54 @@ export default function ProductCategoryPage() {
             <div className="relative">
               <button
                 onClick={() => setShowSort((s) => !s)}
-                className="flex items-center gap-1.5 text-xs font-medium text-gray-600 border border-gray-200 rounded-full px-3 h-8 hover:border-gray-400 transition-colors"
+                className="flex items-center gap-1.5 text-xs font-medium rounded-full px-3 h-8 transition-colors border"
+                style={{
+                  borderColor: "var(--border-default)",
+                  color: "var(--text-secondary)",
+                  backgroundColor: "#fff",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--interactive-primary)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.borderColor = "var(--border-default)")
+                }
               >
                 <SlidersHorizontal className="h-3.5 w-3.5" />
                 Sort: {SORT_OPTIONS.find((o) => o.value === sort)?.label}
                 <ChevronDown className="h-3 w-3" />
               </button>
+
               {showSort && (
-                <div className="absolute right-0 top-10 w-44 bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden z-30">
+                <div
+                  className="absolute right-0 top-10 w-44 rounded-xl shadow-lg border overflow-hidden z-30"
+                  style={{
+                    backgroundColor: "#fff",
+                    borderColor: "var(--border-default)",
+                  }}
+                >
                   {SORT_OPTIONS.map((o) => (
                     <button
                       key={o.value}
                       onClick={() => { setSort(o.value); setShowSort(false); }}
-                      className={`w-full text-left px-4 py-2.5 text-xs hover:bg-gray-50 transition-colors ${sort === o.value ? "font-semibold text-emerald-700 bg-emerald-50" : "text-gray-600"}`}
+                      className="w-full text-left px-4 py-2.5 text-xs transition-colors"
+                      style={
+                        sort === o.value
+                          ? {
+                              fontWeight: 600,
+                              color: "var(--interactive-primary)",
+                              backgroundColor: "var(--color-tertiary)",
+                            }
+                          : { color: "var(--text-secondary)" }
+                      }
+                      onMouseEnter={(e) => {
+                        if (sort !== o.value)
+                          e.currentTarget.style.backgroundColor = "#fef2f2";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (sort !== o.value)
+                          e.currentTarget.style.backgroundColor = "transparent";
+                      }}
                     >
                       {o.label}
                     </button>
@@ -328,11 +400,18 @@ export default function ProductCategoryPage() {
 
         {/* Count */}
         {!loading && (
-          <p className="text-xs text-gray-400 mb-5">
+          <p className="text-xs mb-5" style={{ color: "var(--text-secondary)" }}>
             {displayed.length} product{displayed.length !== 1 ? "s" : ""} in{" "}
-            <span className="font-semibold text-gray-600">{categoryLabel}</span>
+            <span className="font-semibold" style={{ color: "var(--text-primary)" }}>
+              {categoryLabel}
+            </span>
             {activePet !== "all" && (
-              <> for <span className="font-semibold text-gray-600">{PET_LABELS[activePet]}</span></>
+              <>
+                {" "}for{" "}
+                <span className="font-semibold" style={{ color: "var(--text-primary)" }}>
+                  {PET_LABELS[activePet]}
+                </span>
+              </>
             )}
           </p>
         )}
@@ -342,12 +421,32 @@ export default function ProductCategoryPage() {
           {loading
             ? Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={i} />)
             : displayed.length > 0
-              ? displayed.map((p) => <ProductCard key={p._id} product={p} />)
+              ? displayed.map((p) => (
+                  <ProductCard
+                    key={p._id}
+                    id={p._id}
+                    image={buildImageUrl(p.image)}
+                    name={p.name}
+                    price={Number(p.price)}
+                    unit={p.unit ?? "per kg"}
+                    category={categoryLabel}          
+                    inStock={Number(p.inStock ?? 0)}
+                    isFavorite={!!favorites[p._id]}
+                    onToggleWishlist={() => handleToggleWishlist(p._id)}
+                    onAddToCart={() => handleAddToCart(p._id)}
+                  />
+                ))
               : (
                 <div className="col-span-full py-20 text-center">
-                  <p className="text-gray-400 text-sm">No products found.</p>
+                  <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
+                    No products found.
+                  </p>
                   {search && (
-                    <button onClick={() => setSearch("")} className="mt-3 text-xs text-emerald-600 underline">
+                    <button
+                      onClick={() => setSearch("")}
+                      className="mt-3 text-xs underline transition-colors"
+                      style={{ color: "var(--interactive-primary)" }}
+                    >
                       Clear search
                     </button>
                   )}

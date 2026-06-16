@@ -36,7 +36,7 @@ export default function ProductCard({
   price,
   isFavorite = false,
   inStock = 0,
-  category = "WELLNESS",
+  category ,
   rating = 4,
   reviewCount = 0,
   createdAt,
