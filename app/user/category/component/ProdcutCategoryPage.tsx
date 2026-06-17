@@ -24,6 +24,7 @@ type Product = {
   category: string[];
   totalSold?: number;
   unit?: string;
+  
 };
 
 // ─── Constants ────────────────────────────────────────────────────────────────
