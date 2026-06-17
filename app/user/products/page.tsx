@@ -1,6 +1,8 @@
+// app/products/best-sellers/page.tsx  (server component)
+
 import { handleWhoami } from "@/lib/actions/auth-actions";
 import { notFound } from "next/navigation";
-import AllProductsPage from "./components/AllProduct";
+import BestSellersClient from "./components/BestSellerspage";
 
 export default async function Page() {
   const result = await handleWhoami();
@@ -13,6 +15,8 @@ export default async function Page() {
     notFound();
   }
 
-  return <AllProductsPage />;
-
+  // No functions passed as props — BestSellersClient fetches its own data
+  // via the server action directly, which is allowed since that action is
+  // itself marked "use server".
+  return <BestSellersClient />;
 }

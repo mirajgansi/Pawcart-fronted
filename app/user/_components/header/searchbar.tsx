@@ -3,12 +3,13 @@
 import { useState, useRef, useEffect } from "react";
 import { Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { handleGetAllProducts } from "@/lib/actions/product-action";
 
 type SearchResult = {
-  id: string;
+  _id: string;
   name: string;
-  category: string;
-  subCategory: string;
+  category?: string;
+  productCategory?: string;
   price: number;
   image?: string;
 };
@@ -41,12 +42,21 @@ export default function SearchBar() {
     const timeout = setTimeout(async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`);
-        const data = await res.json();
-        setResults(data?.data?.slice(0, 5) || []);
+        const res = await handleGetAllProducts({
+          search: query,
+          page: 1,
+          size: 5,
+        });
+
+        if (res.success) {
+          setResults((res.products as SearchResult[]) ?? []);
+        } else {
+          setResults([]);
+        }
         setOpen(true);
       } catch {
         setResults([]);
+        setOpen(true);
       } finally {
         setLoading(false);
       }
@@ -58,12 +68,13 @@ export default function SearchBar() {
   const handleSelect = (id: string) => {
     setOpen(false);
     setQuery("");
-    router.push(`/user/product/${id}`);
+    router.push(`/user/products/${id}`);
   };
 
   const handleViewAll = () => {
     setOpen(false);
-    router.push(`/user/orders?search=${encodeURIComponent(query)}`);
+    router.push(`/user/search?q=${encodeURIComponent(query)}`);
+
   };
 
   return (
@@ -123,8 +134,8 @@ export default function SearchBar() {
 
           {!loading && results.map((item) => (
             <button
-              key={item.id}
-              onClick={() => handleSelect(item.id)}
+              key={item._id}
+              onClick={() => handleSelect(item._id)}
               className="w-full flex items-center gap-3 px-4 py-3 transition text-left"
               onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--color-primary-50)")}
               onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}
@@ -146,11 +157,13 @@ export default function SearchBar() {
                 <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
                   {highlightMatch(item.name, query)}
                 </p>
-                <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
-                  {item.category} • {item.subCategory}
-                </p>
+                {(item.category || item.productCategory) && (
+                  <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                    {[item.category, item.productCategory].filter(Boolean).join(" • ")}
+                  </p>
+                )}
                 <p className="text-sm font-semibold mt-1" style={{ color: "var(--interactive-primary)" }}>
-                  ${item.price.toFixed(2)}
+                  ${Number(item.price).toFixed(2)}
                 </p>
               </div>
             </button>

@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { handleGetTrendingProducts, handleToggleFavoriteProduct } from "@/lib/actions/product-action";
-import ProductCard from "../../_components/Productcard";
-import SpaProductCard from "../../_components/CardProduct";
+import TrendingProductCard from "./trendingProdcutCard";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,15 +32,18 @@ function buildImageUrl(image?: string) {
   return `${base}/${image.replace(/^\/+/, "")}`;
 }
 
+// Badges shown on each of the 5 trending slots, in order
+const BADGES = ["Hot Pick", "Trending", "Hot", "Top Rated", "Popular"];
+
 // ─── Skeletons ────────────────────────────────────────────────────────────────
 
 function BigCardSkeleton() {
-  return <div className="h-full min-h-[440px] w-full rounded-[20px] bg-gray-100 animate-pulse" />;
+  return <div className="aspect-[16/10] w-full rounded-[20px] bg-gray-100 animate-pulse" />;
 }
 
-function CardSkeleton() {
+function SmallCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 animate-pulse">
+    <div className="bg-white rounded-[20px] overflow-hidden border border-gray-100 animate-pulse">
       <div className="aspect-square bg-gray-100" />
       <div className="p-3.5 space-y-2">
         <div className="h-3 w-20 bg-gray-100 rounded" />
@@ -63,7 +65,7 @@ export default function TrendingPage() {
     (async () => {
       setLoading(true);
       try {
-        const res = await handleGetTrendingProducts(1, 5); // only top 5
+        const res = await handleGetTrendingProducts(1, 5); // top 5
         if (res.success && res.products) {
           setProducts(res.products as Product[]);
         } else if (res.success && res.data) {
@@ -91,9 +93,9 @@ export default function TrendingPage() {
     toast.success("Added to cart");
   };
 
-  // products[0] = hero spa card, products[1..4] = the 4 small cards
-  const heroProduct = products[0];
-  const smallCards   = products.slice(1, 5);
+  // products[0..1] = the 2 big top cards, products[2..4] = the 3 small bottom cards
+  const bigCards = products.slice(0, 2);
+  const smallCards = products.slice(2, 5);
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg-page)" }}>
@@ -110,50 +112,62 @@ export default function TrendingPage() {
           </p>
         </div>
 
-        {/* ── 4-col grid: hero spans 2x2 top-left, 4 small cards fill the rest ── */}
+        {/* ── Top row: 2 big cards / Bottom row: 3 small cards ── */}
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4" style={{ gridAutoRows: "1fr" }}>
-            <div className="col-span-2 row-span-2">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <BigCardSkeleton />
               <BigCardSkeleton />
             </div>
-            {Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {Array.from({ length: 3 }).map((_, i) => <SmallCardSkeleton key={i} />)}
+            </div>
           </div>
-        ) : heroProduct ? (
-          <div
-            className="grid grid-cols-2 sm:grid-cols-4 gap-4"
-            style={{ gridAutoRows: "1fr" }}
-          >
-            {/* Hero card — spans 2 columns, 2 rows */}
-            <div className="col-span-2 row-span-2">
-              <SpaProductCard
-                title={heroProduct.name}
-                description={heroProduct.description}
-                price={Number(heroProduct.price)}
-                image={buildImageUrl(heroProduct.image)}
-                badge="Hot Pick"
-                eyebrow={heroProduct.productCategory}
-                onShopNow={() => handleAddToCart(heroProduct._id)}
-              />
+        ) : products.length > 0 ? (
+          <div className="space-y-4">
+            {/* Top: 2 big cards side by side */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {bigCards.map((p, i) => (
+                <TrendingProductCard
+                  key={p._id}
+                  size="big"
+                  product={{
+                    _id: p._id,
+                    name: p.name,
+                    description: p.description,
+                    price: Number(p.price),
+                    image: buildImageUrl(p.image),
+                    badge: BADGES[i],
+                  }}
+                  isFavorite={!!favorites[p._id]}
+                  onToggleWishlist={() => handleToggleWishlist(p._id)}
+                  onAddToCart={() => handleAddToCart(p._id)}
+                />
+              ))}
             </div>
 
-            {/* 4 small cards auto-fill the remaining 2x2 cells */}
-            {smallCards.map((p) => (
-              <ProductCard
-                key={p._id}
-                product={{
-                  _id: p._id,
-                  name: p.name,
-                  price: Number(p.price),
-                  image: buildImageUrl(p.image),
-                  unit: p.unit ?? "",
-                  inStock: Number(p.inStock ?? 0),
-                  productCategory: p.productCategory,
-                }}
-                isFavorite={!!favorites[p._id]}
-                onToggleWishlist={() => handleToggleWishlist(p._id)}
-                onAddToCart={() => handleAddToCart(p._id)}
-              />
-            ))}
+            {/* Bottom: 3 small cards */}
+            {smallCards.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {smallCards.map((p, i) => (
+                  <TrendingProductCard
+                    key={p._id}
+                    size="small"
+                    product={{
+                      _id: p._id,
+                      name: p.name,
+                      price: Number(p.price),
+                      image: buildImageUrl(p.image),
+                      unit: p.unit ?? "",
+                      badge: BADGES[i + 2],
+                    }}
+                    isFavorite={!!favorites[p._id]}
+                    onToggleWishlist={() => handleToggleWishlist(p._id)}
+                    onAddToCart={() => handleAddToCart(p._id)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <p className="text-sm" style={{ color: "var(--text-secondary)" }}>

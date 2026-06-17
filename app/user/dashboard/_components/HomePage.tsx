@@ -166,7 +166,7 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-[var(--text-primary)]">Trending Now</h2>
-          <Link href="/user/products" className="text-sm text-[var(--text-brand)] hover:underline flex items-center gap-1">
+          <Link href="/user/trending" className="text-sm text-[var(--text-brand)] hover:underline flex items-center gap-1">
             See all <ChevronRight className="h-4 w-4" />
           </Link>
         </div>
@@ -289,7 +289,7 @@ export default function HomePage() {
               ))}
             </ul>
             <Link
-              href="/user/products?category=grooming"
+              href="/user/groomingkits"
               className="inline-flex items-center gap-2 text-white font-semibold text-sm px-6 py-3 rounded-full w-fit transition hover:opacity-90"
               style={{ backgroundColor: "var(--color-primary-800)" }}
             >
