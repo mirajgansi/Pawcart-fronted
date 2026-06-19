@@ -273,8 +273,7 @@ export default function ProductsGrid({
           badge: undefined,
         }}
         isFavorite={isFav}
-        onToggleWishlist={() => toggleFavorite(p._id)}
-        onAddToCart={() => onAddCart(p)}
+        
       />
 
       {adding[p._id] && (

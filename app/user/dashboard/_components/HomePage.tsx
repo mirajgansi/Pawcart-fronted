@@ -191,8 +191,6 @@ export default function HomePage() {
       createdAt: p.createdAt,      // ← pass this
     }}
     isFavorite={!!favorites[p._id]}
-    onToggleWishlist={() => toggleFav(p._id)}
-    onAddToCart={() => {}}
   />
 ))
 
@@ -233,8 +231,6 @@ export default function HomePage() {
       productCategory: p.productCategory,
     }}
     isFavorite={!!favorites[p._id]}
-    onToggleWishlist={() => toggleFav(p._id)}
-    onAddToCart={() => {}}
   />
 ))
               : (

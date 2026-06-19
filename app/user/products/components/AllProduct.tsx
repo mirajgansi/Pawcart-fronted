@@ -359,9 +359,7 @@ export default function ProductResultsView({
                   key={p._id}
                   product={p}
                   isFavorite={!!favorites[p._id]}
-                  onToggleWishlist={() => handleToggleWishlist(p._id)}
-                  
-                  onAddToCart={() => handleAddToCart(p._id)}
+               
                 />
               ))}
               {Array.from({ length: fillerCount }).map((_, i) => <EmptyCell key={`fill-${i}`} />)}

@@ -439,8 +439,7 @@ export default function ProductCategoryPage({ petSlug, productCategory }: { petS
                       productCategory: categoryLabel,
                     }}
                     isFavorite={!!favorites[p._id]}
-                    onToggleWishlist={() => handleToggleWishlist(p._id)}
-                    onAddToCart={() => handleAddToCart(p._id)}
+                   
                   />
                 ))
               : (

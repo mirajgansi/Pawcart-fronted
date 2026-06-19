@@ -3,6 +3,9 @@
 import { Heart, ShoppingCart, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
+import { handleAddCartItem } from "@/lib/actions/cart-action"; // adjust path
+import { handleGetFavoritesMe, handleToggleFavoriteProduct } from "@/lib/actions/product-action";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -25,8 +28,6 @@ export type ProductCardProduct = {
 type ProductCardProps = {
   product: ProductCardProduct;
   isFavorite?: boolean;
-  onAddToCart?: () => void;
-  onToggleWishlist?: () => void;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -76,13 +77,73 @@ function Stars({ rating = 0, count = 0 }: { rating?: number; count?: number }) {
 
 export default function ProductCard({
   product,
-  isFavorite = false,
-  onAddToCart,
-  onToggleWishlist,
+  isFavorite: initialFavorite = false,
 }: ProductCardProps) {
   const badge   = getBadge(product);
   const inStock = product.inStock ?? 0;
 
+  const [isFavorite, setIsFavorite] = useState(initialFavorite);
+
+  useEffect(() => {
+    setIsFavorite(initialFavorite);
+  }, [initialFavorite]);
+
+  const [favLoading, setFavLoading] = useState(false);
+  const [adding, setAdding]         = useState(false);
+  const [justAdded, setJustAdded]   = useState(false);
+
+  // ── Add to cart ──────────────────────────────────────────────────────────
+  async function handleAddToCart(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (inStock <= 0 || adding) return;
+
+    setAdding(true);
+    const res = await handleAddCartItem({ productId: product._id, quantity: 1 });
+    setAdding(false);
+
+    if (!res.success) {
+      console.error("Add to cart failed:", res.message);
+      // optionally trigger an error toast here
+      return;
+    }
+
+    setJustAdded(true);
+    setTimeout(() => setJustAdded(false), 1500); // brief "added" confirmation
+  }
+
+  // ── Toggle wishlist ──────────────────────────────────────────────────────
+  async function handleToggleWishlist(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (favLoading) return;
+
+    setFavLoading(true);
+    const next = !isFavorite;
+    setIsFavorite(next); // optimistic update
+
+    const res = await handleToggleFavoriteProduct(product._id);
+    setFavLoading(false);
+
+    if (!res.success) {
+      console.error("Wishlist update failed:", res.message);
+      setIsFavorite(!next); // revert on failure
+    }
+  }
+useEffect(() => {
+    let active = true;
+    handleGetFavoritesMe().then((res: any) => {
+      if (!active || !res?.success) return;
+      const list = res.data?.products ?? res.data ?? [];
+      const isInWishlist = list.some(
+        (item: any) => (item.productId ?? item._id) === product._id
+      );
+      if (isInWishlist) setIsFavorite(true);
+    });
+    return () => { active = false; };
+  }, [product._id]);
+
+  
   return (
     <div
       className="relative rounded-2xl overflow-hidden group transition-all duration-300 flex flex-col"
@@ -95,12 +156,13 @@ export default function ProductCard({
     >
 
       {/* ── Wishlist ── */}
-  <button
-  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onToggleWishlist?.(); }}
-  className="absolute top-3 right-3 z-10 rounded-full p-1.5 shadow-sm transition-opacity duration-200"
-  style={{ backgroundColor: "var(--bg-surface)" }}
-  aria-label="Toggle wishlist"
->
+      <button
+        onClick={handleToggleWishlist}
+        disabled={favLoading}
+        className="absolute top-3 right-3 z-10 rounded-full p-1.5 shadow-sm transition-opacity duration-200"
+        style={{ backgroundColor: "var(--bg-surface)" }}
+        aria-label="Toggle wishlist"
+      >
         <Heart
           className="h-3.5 w-3.5 transition-colors"
           style={
@@ -114,16 +176,15 @@ export default function ProductCard({
       {/* ── Image ── */}
       <Link href={`/user/products/${product._id}`} className="block">
         <div className="aspect-square overflow-hidden relative" style={{ backgroundColor: "var(--color-tertiary)" }}>
-        <Image
-        src={buildImageUrl(product.image)}
-        alt={product.name}
-        fill
-        unoptimized
-        className="object-cover group-hover:scale-105 transition-transform duration-500"
-        sizes="(max-width: 640px) 50vw, 25vw"
-      />
+          <Image
+            src={buildImageUrl(product.image)}
+            alt={product.name}
+            fill
+            unoptimized
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 640px) 50vw, 25vw"
+          />
 
-          {/* Badge */}
           {badge && (
             <span
               className="absolute bottom-3 left-3 text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-sm"
@@ -136,7 +197,6 @@ export default function ProductCard({
             </span>
           )}
 
-          {/* Out of stock overlay */}
           {inStock <= 0 && (
             <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: "rgba(254,242,242,0.75)" }}>
               <span
@@ -157,7 +217,6 @@ export default function ProductCard({
       {/* ── Info ── */}
       <div className="p-4 flex flex-col gap-1.5 flex-1">
 
-        {/* Category */}
         {product.productCategory && (
           <p
             className="text-[9px] font-bold uppercase tracking-widest"
@@ -167,7 +226,6 @@ export default function ProductCard({
           </p>
         )}
 
-        {/* Name */}
         <Link href={`/user/products/${product._id}`}>
           <h3
             className="text-sm font-semibold line-clamp-2 leading-snug transition-colors"
@@ -179,39 +237,36 @@ export default function ProductCard({
           </h3>
         </Link>
 
-        {/* Stars */}
         <Stars rating={product.averageRating} count={product.reviewCount} />
 
-        {/* Unit */}
         {product.unit && (
           <p className="text-[10px]" style={{ color: "var(--text-secondary)" }}>
             {product.unit}
           </p>
         )}
 
-        {/* Price + Cart */}
         <div className="flex items-center justify-between mt-auto pt-2">
           <span className="text-base font-bold" style={{ color: "var(--text-brand)" }}>
             ${Number(product.price).toFixed(2)}
           </span>
 
           <button
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); onAddToCart?.(); }}
-            disabled={inStock <= 0}
+            onClick={handleAddToCart}
+            disabled={inStock <= 0 || adding}
             className="rounded-full p-2 transition-colors duration-200"
             style={
               inStock > 0
-                ? { backgroundColor: "var(--color-primary-50)", color: "var(--color-primary-700)" }
+                ? { backgroundColor: justAdded ? "var(--color-primary-700)" : "var(--color-primary-50)", color: justAdded ? "var(--interactive-primary-text)" : "var(--color-primary-700)" }
                 : { backgroundColor: "var(--color-tertiary)", color: "var(--color-primary-200)", cursor: "not-allowed" }
             }
             onMouseEnter={(e) => {
-              if (inStock > 0) {
+              if (inStock > 0 && !justAdded) {
                 e.currentTarget.style.backgroundColor = "var(--color-primary-700)";
                 e.currentTarget.style.color = "var(--interactive-primary-text)";
               }
             }}
             onMouseLeave={(e) => {
-              if (inStock > 0) {
+              if (inStock > 0 && !justAdded) {
                 e.currentTarget.style.backgroundColor = "var(--color-primary-50)";
                 e.currentTarget.style.color = "var(--color-primary-700)";
               }

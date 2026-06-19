@@ -28,11 +28,7 @@ export default function CategoryProductsClient({ products }: { products: any[] }
             badge: p.badge,
           }}
           isFavorite={!!favorites[p._id]}
-          onToggleWishlist={() => {
-            setFavorites((prev) => ({ ...prev, [p._id]: !prev[p._id] }));
-            toast.success("Wishlist updated");
-          }}
-          onAddToCart={() => toast.success("Added to cart")}
+         
         />
       ))}
     </div>
