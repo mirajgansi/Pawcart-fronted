@@ -14,6 +14,15 @@ type SearchResult = {
   image?: string;
 };
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function buildImageUrl(image?: string) {
+  if (!image) return "";
+  if (image.startsWith("http")) return image;
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+  return `${base}/${image.replace(/^\/+/, "")}`;
+}
+
 export default function SearchBar() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -106,74 +115,85 @@ export default function SearchBar() {
       {/* Dropdown */}
       {open && (
         <div
-          className="absolute top-full mt-2 w-80 rounded-xl overflow-hidden z-50"
+          className="absolute top-full mt-2 w-80 rounded-xl z-50 flex flex-col"
           style={{
             backgroundColor: "var(--bg-surface)",
             border: "1px solid var(--border-default)",
             boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+            maxHeight: "70vh",
+            overflow: "hidden",
           }}
         >
           {/* Header */}
-          <div className="px-4 py-2.5 border-b" style={{ borderColor: "var(--border-default)" }}>
+          <div className="px-4 py-2.5 border-b flex-shrink-0" style={{ borderColor: "var(--border-default)" }}>
             <span className="text-xs font-semibold tracking-widest" style={{ color: "var(--text-secondary)" }}>
               MATCHING PRODUCTS
             </span>
           </div>
 
-          {loading && (
-            <div className="px-4 py-6 text-sm text-center" style={{ color: "var(--text-secondary)" }}>
-              Searching...
-            </div>
-          )}
+          {/* Scrollable results area */}
+          <div
+            className="overflow-y-auto overscroll-contain"
+            onWheel={(e) => e.stopPropagation()}
+          >
+            {loading && (
+              <div className="px-4 py-6 text-sm text-center" style={{ color: "var(--text-secondary)" }}>
+                Searching...
+              </div>
+            )}
 
-          {!loading && results.length === 0 && query && (
-            <div className="px-4 py-6 text-sm text-center" style={{ color: "var(--text-secondary)" }}>
-              No results for "{query}"
-            </div>
-          )}
+            {!loading && results.length === 0 && query && (
+              <div className="px-4 py-6 text-sm text-center" style={{ color: "var(--text-secondary)" }}>
+                No results for "{query}"
+              </div>
+            )}
 
-          {!loading && results.map((item) => (
-            <button
-              key={item._id}
-              onClick={() => handleSelect(item._id)}
-              className="w-full flex items-center gap-3 px-4 py-3 transition text-left"
-              onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--color-primary-50)")}
-              onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}
-            >
-              {/* Thumbnail */}
-              <div
-                className="w-12 h-12 rounded-lg flex-shrink-0 overflow-hidden"
-                style={{ backgroundColor: "var(--color-primary-50)" }}
+            {!loading && results.map((item) => {
+              const imageUrl = buildImageUrl(item.image);
+              return (
+              <button
+                key={item._id}
+                onClick={() => handleSelect(item._id)}
+                className="w-full flex items-center gap-3 px-4 py-3 transition text-left"
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = "var(--color-primary-50)")}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}
               >
-                {item.image ? (
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full" />
-                )}
-              </div>
+                {/* Thumbnail */}
+                <div
+                  className="w-12 h-12 rounded-lg flex-shrink-0 overflow-hidden"
+                  style={{ backgroundColor: "var(--color-primary-50)" }}
+                >
+                  {imageUrl ? (
+                    <img src={imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full" />
+                  )}
+                </div>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
-                  {highlightMatch(item.name, query)}
-                </p>
-                {(item.category || item.productCategory) && (
-                  <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
-                    {[item.category, item.productCategory].filter(Boolean).join(" • ")}
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate" style={{ color: "var(--text-primary)" }}>
+                    {highlightMatch(item.name, query)}
                   </p>
-                )}
-                <p className="text-sm font-semibold mt-1" style={{ color: "var(--interactive-primary)" }}>
-                  ${Number(item.price).toFixed(2)}
-                </p>
-              </div>
-            </button>
-          ))}
+                  {(item.category || item.productCategory) && (
+                    <p className="text-xs mt-0.5" style={{ color: "var(--text-secondary)" }}>
+                      {[item.category, item.productCategory].filter(Boolean).join(" • ")}
+                    </p>
+                  )}
+                  <p className="text-sm font-semibold mt-1" style={{ color: "var(--interactive-primary)" }}>
+                    ${Number(item.price).toFixed(2)}
+                  </p>
+                </div>
+              </button>
+              );
+            })}
+          </div>
 
           {/* Footer */}
           {!loading && results.length > 0 && (
             <button
               onClick={handleViewAll}
-              className="w-full py-3 text-sm font-medium border-t transition"
+              className="w-full py-3 text-sm font-medium border-t transition flex-shrink-0"
               style={{
                 color: "var(--interactive-primary)",
                 borderColor: "var(--border-default)",

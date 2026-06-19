@@ -31,16 +31,16 @@ const PET_SUBCATEGORIES: Record<string, CategoryTile[]> = {
     { label: "Collars", image: "/collars.png",    href: "" },
   ],
   birds: [
-    { label: "Food",    image: "/bird-food.png",  href: "", description: "Premium seeds & pellets" },
+    { label: "Food",    image: "/bird_food.jpg",  href: "", description: "Premium seeds & pellets" },
     { label: "Toys",    image: "/bird-toys.png",  href: "" },
     { label: "Cages",   image: "/cage.png",       href: "" },
-    { label: "Perches", image: "/perch.png",      href: "" },
+    { label: "Perches", image: "/perch.jpg",      href: "" },
   ],
   fish: [
     { label: "Food",      image: "/fish-food.png",    href: "", description: "Flakes, pellets & more" },
     { label: "Decor",     image: "/fish-decor.png",   href: "" },
     { label: "Aquariums", image: "/aquarium.png",     href: "" },
-    { label: "Filters",   image: "/filter.png",       href: "" },
+    { label: "Filters",   image: "/filter.jpg",       href: "" },
   ],
   rabbits: [
     { label: "Food",    image: "/rabbit-food.png", href: "", description: "Hay, pellets & treats" },

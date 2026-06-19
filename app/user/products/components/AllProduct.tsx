@@ -360,6 +360,7 @@ export default function ProductResultsView({
                   product={p}
                   isFavorite={!!favorites[p._id]}
                   onToggleWishlist={() => handleToggleWishlist(p._id)}
+                  
                   onAddToCart={() => handleAddToCart(p._id)}
                 />
               ))}

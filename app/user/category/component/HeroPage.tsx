@@ -43,7 +43,7 @@ export default function CategoryHero({ petSlug }: { petSlug: string }) {
 
   return (
     <div
-      className="rounded-3xl overflow-hidden flex flex-col md:flex-row items-center min-h-[280px] relative border mb-6"
+      className="rounded-3xl overflow-hidden flex flex-col md:flex-row items-center min-h-[280px] relative  mb-6"
       style={{
         background: `
           
@@ -64,11 +64,7 @@ export default function CategoryHero({ petSlug }: { petSlug: string }) {
       </div>
 
       <div className="flex-1 flex items-end justify-center h-48 md:h-[280px]">
-        <img
-          src={hero.image}
-          alt={petSlug}
-          className="h-full w-full object-contain object-bottom"
-        />
+       
       </div>
     </div>
   );

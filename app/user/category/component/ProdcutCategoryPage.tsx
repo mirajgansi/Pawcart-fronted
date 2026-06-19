@@ -45,12 +45,12 @@ const HERO_CONFIG: Record<string, {
   badge: string;
   image: string;   // background image path (put in /public/heroes/)
 }> = {
-  food:          { headline: "Nutrition Tailored\nfor Longevity",    sub: "Scientifically formulated ingredients to keep your companion vibrant & healthy.", badge: "Premium Nutrition",    image: "/heroes/food.jpg" },
-  accessories:   { headline: "Style Meets\nFunction",                sub: "From collars to carriers — gear that looks good and works harder.",               badge: "Top Accessories",      image: "/heroes/accessories.jpg" },
-  toys:          { headline: "Playtime\nElevated",                   sub: "Stimulating toys designed to engage, reward, and bond.",                          badge: "Enrichment Picks",     image: "/heroes/toys.jpg" },
-  housing:       { headline: "Comfort\nThey'll Love",                sub: "Beds, crates, and habitats built for rest and security.",                         badge: "Home Essentials",      image: "/heroes/housing.jpg" },
-  grooming:      { headline: "Groom With\nConfidence",               sub: "Gentle formulas and professional-grade tools for every coat type.",               badge: "Grooming Essentials",  image: "/heroes/grooming.jpg" },
-  "health-care": { headline: "Wellness\nFirst",                      sub: "Supplements, treatments and daily care for a longer, happier life.",              badge: "Health & Wellness",    image: "/heroes/health-care.jpg" },
+  food:          { headline: "Nutrition Tailored\nfor Longevity",    sub: "Scientifically formulated ingredients to keep your companion vibrant & healthy.", badge: "Premium Nutrition",    image: "/food.png" },
+  accessories:   { headline: "Style Meets\nFunction",                sub: "From collars to carriers — gear that looks good and works harder.",               badge: "Top Accessories",      image: "/accessories.png" },
+  toys:          { headline: "Playtime\nElevated",                   sub: "Stimulating toys designed to engage, reward, and bond.",                          badge: "Enrichment Picks",     image: "/pet_toys.png" },
+  housing:       { headline: "Comfort\nThey'll Love",                sub: "Beds, crates, and habitats built for rest and security.",                         badge: "Home Essentials",      image: "/cat_house.png" },
+  grooming:      { headline: "Groom With\nConfidence",               sub: "Gentle formulas and professional-grade tools for every coat type.",               badge: "Grooming Essentials",  image: "/grooming.png" },
+  "health-care": { headline: "Wellness\nFirst",                      sub: "Supplements, treatments and daily care for a longer, happier life.",              badge: "Health & Wellness",    image: "/health-care.png" },
 };
 
 const SORT_OPTIONS = [
@@ -176,12 +176,12 @@ export default function ProductCategoryPage({ petSlug, productCategory }: { petS
           minHeight: "280px",
         }}
       >
-        {/* Dark red gradient overlay — keeps text legible over any photo */}
+        {/* Light gradient overlay — just enough contrast for text, photo stays visible */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(105deg, rgba(127,29,29,0.92) 0%, rgba(166,30,30,0.75) 50%, rgba(92,17,17,0.55) 100%)",
+              "linear-gradient(105deg, rgba(127,29,29,0.55) 0%, rgba(166,30,30,0.35) 50%, rgba(92,17,17,0.15) 100%)",
           }}
         />
 
@@ -209,12 +209,18 @@ export default function ProductCategoryPage({ petSlug, productCategory }: { petS
             </span>
 
             {/* Headline */}
-            <h1 className="text-3xl md:text-4xl font-extrabold leading-tight whitespace-pre-line text-white">
+            <h1
+              className="text-3xl md:text-4xl font-extrabold leading-tight whitespace-pre-line text-white"
+              style={{ textShadow: "0 2px 12px rgba(0,0,0,0.45)" }}
+            >
               {hero.headline}
             </h1>
 
             {/* Sub */}
-            <p className="text-sm leading-relaxed max-w-sm" style={{ color: "#f9c5c5" }}>
+            <p
+              className="text-sm leading-relaxed max-w-sm"
+              style={{ color: "#fdeaea", textShadow: "0 1px 8px rgba(0,0,0,0.4)" }}
+            >
               {hero.sub}
             </p>
 
