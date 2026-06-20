@@ -35,37 +35,51 @@ export type BreadcrumbItem = {
   label: string;
   href?: string;
 };
+export type ListMode = "search" | "trending" | "best-sellers" | "recent" | "category";
 
 export type ProductResultsViewProps = {
-  /** Fetches products for the given page/sort. Wire this to your API route per use case. */
   fetcher: (params: FetchProductsParams) => Promise<FetchProductsResult>;
 
+  /** What kind of list this is — drives the default title if resultsLabel isn't given */
+  mode?: ListMode;
+  /** Only used when mode === "search" */
+  searchQuery?: string;
+
   /**
-   * Builds the H1 from the result count, e.g.:
-   *   (count) => `Showing ${count} results for 'Leather'`
-   *   (count) => `${count} Best Sellers`
+   * Optional override. If omitted, a sensible label is built automatically from `mode`.
    */
-  resultsLabel: (count: number) => string;
-  /** Small line under the title, e.g. "Premium handcrafted accessories and essentials" */
+  resultsLabel?: (count: number) => string;
+
   subtitle?: string;
   breadcrumb?: BreadcrumbItem[];
-
   sortOptions?: SortOption[];
   defaultSort?: string;
-  /** Hide the sort dropdown entirely (e.g. backend doesn't support sort yet) */
   showSort?: boolean;
-
-  /** Called with the toggled product id when the wishlist heart is clicked */
   onToggleWishlist?: (productId: string) => Promise<void> | void;
-  /** Called with the added product id when "add to cart" is clicked */
   onAddToCart?: (productId: string) => Promise<void> | void;
-  /** ids currently favorited, so hearts render correctly on load */
   favoriteIds?: string[];
-
   columns?: 3 | 4;
   emptyStateMessage?: string;
 };
-
+function defaultResultsLabel(mode: ListMode | undefined, query: string | undefined, count: number): string {
+  const plural = count !== 1 ? "s" : "";
+  switch (mode) {
+    case "search":
+      return query
+        ? `Showing ${count} result${plural} for "${query}"`
+        : `Showing ${count} result${plural}`;
+    case "trending":
+      return `${count} Trending Product${plural}`;
+    case "best-sellers":
+      return `${count} Best Seller${plural}`;
+    case "recent":
+      return `${count} Recently Added`;
+    case "category":
+      return `${count} Product${plural}`;
+    default:
+      return `${count} Product${plural}`;
+  }
+}
 const DEFAULT_SORT_OPTIONS: SortOption[] = [
   { label: "Relevance", value: "relevance" },
   { label: "Price: Low to High", value: "price_asc" },
@@ -231,6 +245,8 @@ const PAGE_SIZE_FALLBACK = 8;
 
 export default function ProductResultsView({
   fetcher,
+  mode,
+  searchQuery,
   resultsLabel,
   subtitle,
   breadcrumb,
@@ -332,8 +348,11 @@ export default function ProductResultsView({
         <div className="flex flex-wrap items-start justify-between gap-4 mb-7">
           <div>
             <h1 className="text-2xl font-bold mb-1" style={{ color: "var(--text-brand)" }}>
-              {loading ? "Searching…" : resultsLabel(total)}
-            </h1>
+{loading
+  ? "Searching…"
+  : resultsLabel
+    ? resultsLabel(total)
+    : defaultResultsLabel(mode, searchQuery, total)}            </h1>
             {subtitle && (
               <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
                 {subtitle}

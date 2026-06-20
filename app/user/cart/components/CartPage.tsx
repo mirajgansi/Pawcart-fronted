@@ -428,6 +428,7 @@ export default function CartPage() {
   /* ── render ── */
   return (
     <main className="min-h-screen bg-[#FEF2F2] px-4 py-8 md:px-8">
+  <div className="mx-auto max-w-6xl">
       <h1 className="text-2xl font-semibold text-[#5F030A] mb-1">
         Your Shopping Cart
       </h1>
@@ -486,6 +487,7 @@ export default function CartPage() {
         onClose={() => setShippingOpen(false)}
         onSave={onConfirmShipping}
       />
+      </div>
     </main>
   );
 }

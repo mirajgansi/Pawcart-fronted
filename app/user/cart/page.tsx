@@ -1,6 +1,6 @@
 import { handleWhoami } from "@/lib/actions/auth-actions";
 import { notFound } from "next/navigation";
-import CartPage from "./components/CartDrawer";
+import CartPage from "./components/CartPage";
 
 export default async function Page() {
 
