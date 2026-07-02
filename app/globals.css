@@ -119,7 +119,7 @@
   --text-brand:                 var(--color-primary-700);
   --border-default:             #d4d4d4;
 
-  --interactive-primary:        var(--color-primary-700);
+  --interactive-primary:        var(--color-primary-500);
   --interactive-primary-hover:  var(--color-primary-800);
   --interactive-primary-active: var(--color-primary-900);
   --interactive-primary-text:   #ffffff;

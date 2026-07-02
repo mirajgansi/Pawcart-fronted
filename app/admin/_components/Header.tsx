@@ -58,7 +58,7 @@ export default function Header({
 
             <Link href="/admin" className="flex items-center gap-3 sm:gap-4">
               <div className="relative h-10 w-10 sm:h-12 sm:w-12 overflow-hidden rounded-full ring-1 ring-black/10">
-                <Image src="/cookie.jpg" alt="Logo" fill className="object-cover" />
+                <Image src="/paw.png" alt="Logo" fill className="object-cover" />
               </div>
 
               <div className="leading-tight">

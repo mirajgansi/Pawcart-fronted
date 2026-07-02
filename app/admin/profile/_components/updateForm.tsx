@@ -189,7 +189,7 @@ const onDeleteAccount = async () => {
               <button
                 type="button"
                 onClick={() => setEditing(true)}
-                className="h-11 rounded-full border-2 border-[#35C759] px-4 text-sm font-semibold text-[#35C759] hover:bg-[#35C759]/10 flex items-center gap-2"
+                className="h-11 rounded-full border-2 border-red-500 px-4 text-sm font-semibold text-red-500 hover:bg-red-500/10 flex items-center gap-2"
               >
                 <Pencil size={16} />
                 Edit Information
@@ -249,7 +249,7 @@ const onDeleteAccount = async () => {
                         <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="absolute bottom-1 right-1 flex h-10 w-10 items-center justify-center rounded-full bg-green-500 text-white shadow-md hover:opacity-90"
+                            className="absolute bottom-1 right-1 flex h-10 w-10 items-center justify-center rounded-full bg-red-500 text-white shadow-md hover:opacity-90"
                             title="Change photo"
                         >
                             <Camera size={18} />
@@ -416,7 +416,7 @@ const onDeleteAccount = async () => {
               <button
                 type="submit"
                 disabled={!editing || isSubmitting || (!isDirty && !previewImage)}
-                className="h-11 rounded-full bg-[#35C759] px-6 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-11 rounded-full bg-gray-500 px-6 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "Saving..." : "Save"}
               </button>
