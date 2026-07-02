@@ -124,7 +124,7 @@ useEffect(() => {
                     <div className="mt-4 flex justify-end">
                     <Link
                         href={shippingHref}
-                        className="rounded-2xl bg-green-600 ring-green-900 ring-1 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
+                        className="rounded-2xl bg-red-600 ring-red-900 ring-1 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
                     >
                         Create Shipping Label →
                     </Link>

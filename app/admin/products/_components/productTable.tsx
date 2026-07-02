@@ -6,7 +6,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MoreVertical, Search } from "lucide-react";
 import { toast } from "react-toastify";
-
 import DeleteModal from "@/app/_componets/DeleteModal";
 import { handleDeleteProduct ,handleRestockProduct } from "@/lib/actions/product-action";
 import RestockModal from "./RestockModal";
@@ -189,12 +188,12 @@ const filteredProducts = useMemo(() => {
             />
           </div>
 
-          <button
-            onClick={() => go({ page: 1, search: searchTerm })}
-            className="h-10 rounded-2xl bg-green-600 px-4 text-sm font-semibold text-white hover:bg-green-700 cursor-pointer"
-          >
-            Search
-          </button>
+         <button
+  onClick={() => go({ page: 1, search: searchTerm })}
+  className="h-10 rounded-2xl bg-interactive-primary px-4 text-sm font-semibold text-white hover:bg-interactive-primary-hover cursor-pointer"
+>
+  Search
+</button>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -220,11 +219,11 @@ const filteredProducts = useMemo(() => {
   className="h-10 rounded-2xl border border-gray-200 bg-white px-3 text-sm outline-none focus:border-gray-400 cursor-pointer"
 />
           <Link
-              href="/admin/products/createProduct"
-               className="h-10 inline-flex items-center rounded-2xl bg-green-600 px-4 text-sm font-semibold text-white hover:bg-green-700"
-          >
-            + Add Product
-          </Link>
+    href="/admin/products/createProduct"
+     className="h-10 inline-flex items-center rounded-2xl bg-interactive-primary px-4 text-sm font-semibold text-white hover:bg-interactive-primary-hover"
+>
+  + Add Product
+</Link>
         </div>
       </div>
 
@@ -261,13 +260,14 @@ const filteredProducts = useMemo(() => {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <div className="h-9 w-9 overflow-hidden rounded-lg ring-1 ring-gray-200 bg-white">
-                        <Image
-                          src={img}
-                          alt={p.name}
-                          width={36}
-                          height={36}
-                          className="h-9 w-9 object-cover"
-                        />
+                      <Image
+  src={img}
+  alt={p.name}
+  width={36}
+  height={36}
+  unoptimized
+  className="h-9 w-9 object-cover"
+/>
                       </div>
 
                       <div className="min-w-0">

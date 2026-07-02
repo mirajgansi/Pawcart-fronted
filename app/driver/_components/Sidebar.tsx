@@ -21,9 +21,9 @@ export default function Sidebar() {
   const isActive = (href: string) =>
     href === "/driver" ? pathname === href : pathname?.startsWith(href);
 
-  return (
+ return (
     <aside
-      className="A
+      className="
         w-20 xl:w-64
         min-h-full
         bg-white dark:bg-gray-900
@@ -36,7 +36,7 @@ export default function Sidebar() {
           const Icon = link.icon;
           const active = isActive(link.href);
 
-           return (
+          return (
             <Link
               key={link.href}
               href={link.href}
@@ -47,21 +47,22 @@ export default function Sidebar() {
                 transition-all
                 ${
                   active
-                ? "bg-green-600 text-white shadow-sm"
-                : "text-gray-800 hover:bg-green-50"
+                    ? "bg-interactive-primary text-black shadow-sm"
+                    : "text-black hover:bg-primary-50"
                 }
               `}
             >
-              {/* Icon */}
               <Icon
                 size={20}
                 className={`
                   shrink-0
-                  ${active ? "text-current" : "text-gray-500 group-hover:text-gray-900 dark:group-hover:text-white"}
+                  ${
+                    active
+                      ? "text-black"
+                      : "text-gray-500 group-hover:text-black"
+                  }
                 `}
               />
-
-              {/* Label (hidden on compact mode) */}
               <span className="hidden xl:inline">{link.label}</span>
             </Link>
           );

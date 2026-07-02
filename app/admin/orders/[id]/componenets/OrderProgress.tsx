@@ -56,7 +56,7 @@ export default function OrderProgress({
                     "flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ring-1",
                     "transition-all duration-500 ease-out",
                     active
-                      ? "bg-green-800 text-white ring-green-900 scale-105"
+                      ? "bg-red-800 text-white ring-red-900 scale-105"
                       : "bg-white text-gray-500 ring-gray-200 scale-100",
                   ].join(" ")}
                 >
@@ -67,7 +67,7 @@ export default function OrderProgress({
                   <p
                     className={[
                       "text-sm font-semibold transition-colors duration-500",
-                      active ? "text-green-900" : "text-gray-500",
+                      active ? "text-red-900" : "text-gray-500",
                     ].join(" ")}
                   >
                     {s.label}

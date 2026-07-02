@@ -211,7 +211,7 @@ export default function UsersTable({
 
         <Link
           href="/admin/user/create"
-          className="h-10 inline-flex items-center rounded-2xl bg-green-600 border-gray-200 border-2 px-4 text-sm font-semibold text-white hover:bg-green-700"
+          className="h-10 inline-flex items-center rounded-2xl bg-red-700 border-gray-200 border-2 px-4 text-sm font-semibold text-white hover:bg-red-500"
         >
           Create new user
         </Link>

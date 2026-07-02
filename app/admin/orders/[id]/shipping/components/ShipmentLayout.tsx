@@ -76,7 +76,7 @@ export default function ShippingStatusSection({ order }: { order: any }) {
           <button
             type="button"
             onClick={() => setOpenDriver(true)}
-            className="rounded-2xl bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-700"
+            className="rounded-2xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
           >
             Choose Driver
           </button>
@@ -99,7 +99,7 @@ export default function ShippingStatusSection({ order }: { order: any }) {
                 <div
                   className={`mt-0.5 grid h-9 w-9 place-items-center rounded-2xl ring-1 ${
                     e.done
-                      ? "bg-green-700 text-white ring-gren-900"
+                      ? "bg-red-700 text-white ring-gren-900"
                       : "bg-white text-gray-400 ring-gray-200"
                   }`}
                 >

@@ -63,7 +63,7 @@ export default function Header({
 
               <div className="leading-tight">
                 <div className="text-base sm:text-lg font-bold text-black">
-                  Click Shop
+                  Pawcart
                 </div>
                 <div className="text-[10px] sm:text-[11px] font-medium text-gray-500">
                   {formatTime(now)} <span className="mx-1">•</span> {formatDate(now)}

@@ -44,6 +44,18 @@
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
+ --color-interactive-primary: var(--interactive-primary);
+  --color-interactive-primary-hover: var(--interactive-primary-hover);
+  --color-interactive-primary-active: var(--interactive-primary-active);
+  --color-interactive-primary-text: var(--interactive-primary-text);
+  --color-interactive-secondary: var(--interactive-secondary);
+  --color-interactive-secondary-hover: var(--interactive-secondary-hover);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-brand: var(--text-brand);
+  --color-bg-page: var(--bg-page);
+  --color-bg-surface: var(--bg-surface);
+  --color-border-default: var(--border-default);
 }
 
 :root {
@@ -102,27 +114,26 @@
   --bg-page:                    #FEF2F2;
   --bg-surface:                 #ffffff;
 
-  --text-primary:               #000000;
+  --text-primary:               #574240;
   --text-secondary:             #525252;
-  --text-brand:                 #7F1D1D;
-  --text-primary: #574240;        /* light red (was #000000) */
---text-brand:   #5F030A;  
+  --text-brand:                 var(--color-primary-700);
   --border-default:             #d4d4d4;
 
-  --interactive-primary:        #7F1D1D;
-  --interactive-primary-hover:  #8b1515;
-  --interactive-primary-active: #5c1111;
+  --interactive-primary:        var(--color-primary-700);
+  --interactive-primary-hover:  var(--color-primary-800);
+  --interactive-primary-active: var(--color-primary-900);
   --interactive-primary-text:   #ffffff;
 
   --interactive-secondary:      #991B1B;
   --interactive-secondary-hover:#7e1616;
   --interactive-secondary-text: #ffffff;
 
-  --interactive-outlined-border:#7F1D1D;
-  --interactive-outlined-text:  #7F1D1D;
+  --interactive-outlined-border:var(--color-primary-700);
+  --interactive-outlined-text:  var(--color-primary-700);
 
-  --focus-ring:                 #de4a4a;
+  --focus-ring:                 var(--color-primary-800);
 }
+
 
 .dark {
   --background: oklch(0.145 0 0);

@@ -77,8 +77,8 @@ const PRODUCT_CATEGORY_META: Record<ProductCategorySlug, { label: string; icon: 
 
 const COLORS = ["red","blue","orange","black","pink","green","yellow","purple","white","brown"] as const;
 const COLOR_HEX: Record<string, string> = {
-  red:"#E24B4A", blue:"#378ADD", orange:"#EF9F27", black:"#1a1a1a",
-  pink:"#D4537E", green:"#639922", yellow:"#BA7517", purple:"#7F77DD",
+  green:"#E24B4A", blue:"#378ADD", orange:"#EF9F27", black:"#1a1a1a",
+  pink:"#D4537E", red:"#639922", yellow:"#BA7517", purple:"#7F77DD",
   white:"#e5e5e5", brown:"#854F0B",
 };
 
@@ -300,7 +300,7 @@ function GroomingFields({ control, register, errors }: any) {
       <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
         <input
           type="checkbox"
-          className="h-4 w-4 rounded border-gray-300 accent-green-600"
+          className="h-4 w-4 rounded border-gray-300 accent-red-600"
           {...register("isHypoallergenic")}
         />
         Hypoallergenic formula
@@ -368,7 +368,7 @@ function ColorPicker({ control, name, error }: { control: any; name: string; err
                   className={[
                     "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium capitalize transition-all",
                     selected
-                      ? "border-green-600 bg-green-50 text-green-700"
+                      ? "border-red-600 bg-red-50 text-red-700"
                       : "border-gray-200 text-gray-600 hover:bg-gray-50",
                   ].join(" ")}
                 >
@@ -542,12 +542,12 @@ export default function CreateProductWizard() {
         <span
           className={[
             "grid h-6 w-6 place-items-center rounded-full text-xs font-bold transition-colors",
-            done || active ? "bg-green-600 text-white" : "bg-gray-100 text-gray-500",
+            done || active ? "bg-red-600 text-white" : "bg-gray-100 text-gray-500",
           ].join(" ")}
         >
           {done ? <Check className="h-3 w-3" /> : n}
         </span>
-        <span className={active ? "text-sm font-semibold text-green-600" : "text-sm text-gray-400"}>
+        <span className={active ? "text-sm font-semibold text-black" : "text-sm text-gray-400"}>
           {label}
         </span>
       </button>
@@ -646,7 +646,7 @@ export default function CreateProductWizard() {
                           <button
                             type="button"
                             onClick={() => fileInputRef.current?.click()}
-                            className="flex items-center gap-1.5 rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white"
+                            className="flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white"
                           >
                             <Plus className="h-3 w-3" /> Add more
                           </button>
@@ -756,14 +756,14 @@ export default function CreateProductWizard() {
                       className={[
                         "relative flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm font-medium transition-all",
                         selected
-                          ? "border-green-500 bg-green-50 text-green-700"
+                          ? "border-red-500 bg-red-50 text-red-700"
                           : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50",
                       ].join(" ")}
                     >
                       <span className="text-base">{icon}</span>
                       <span>{label}</span>
                       {selected && (
-                        <span className="absolute right-2 top-2 grid h-4 w-4 place-items-center rounded-full bg-green-600">
+                        <span className="absolute right-2 top-2 grid h-4 w-4 place-items-center rounded-full bg-red-600">
                           <Check className="h-2.5 w-2.5 text-white" />
                         </span>
                       )}
@@ -776,7 +776,7 @@ export default function CreateProductWizard() {
                   {selectedCategories.map((slug) => (
                     <span
                       key={slug}
-                      className="flex items-center gap-1 rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700"
+                      className="flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700"
                     >
                       {PET_CATEGORY_META[slug].icon} {PET_CATEGORY_META[slug].label}
                       <button type="button" onClick={() => togglePetCategory(slug)}>
@@ -807,14 +807,14 @@ export default function CreateProductWizard() {
                       className={[
                         "relative flex flex-col items-center gap-1 rounded-lg border py-3 text-sm font-medium transition-all",
                         selected
-                          ? "border-green-500 bg-green-50 text-green-700"
+                          ? "border-red-500 bg-red-50 text-red-700"
                           : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50",
                       ].join(" ")}
                     >
                       <span className="text-xl">{icon}</span>
                       <span className="text-xs">{label}</span>
                       {selected && (
-                        <span className="absolute right-2 top-2 grid h-4 w-4 place-items-center rounded-full bg-green-600">
+                        <span className="absolute right-2 top-2 grid h-4 w-4 place-items-center rounded-full bg-red-600">
                           <Check className="h-2.5 w-2.5 text-white" />
                         </span>
                       )}
@@ -839,11 +839,11 @@ export default function CreateProductWizard() {
           >
             {/* Summary badge */}
             {selectedProductCategory && (
-              <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 text-sm text-green-700">
+              <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
                 <span className="text-base">{PRODUCT_CATEGORY_META[selectedProductCategory]?.icon}</span>
                 <span className="font-medium">{PRODUCT_CATEGORY_META[selectedProductCategory]?.label}</span>
                 {selectedCategories.length > 0 && (
-                  <span className="text-green-500">
+                  <span className="text-red-500">
                     · for {selectedCategories.map((c) => PET_CATEGORY_META[c].label).join(", ")}
                   </span>
                 )}
@@ -902,7 +902,7 @@ export default function CreateProductWizard() {
           <button
             type="button"
             onClick={goNext}
-            className="h-10 rounded-md bg-green-600 px-6 text-sm font-semibold text-white hover:bg-green-700"
+            className="h-10 rounded-md bg-red-600 px-6 text-sm font-semibold text-white hover:bg-red-700"
           >
             Continue →
           </button>
@@ -910,7 +910,7 @@ export default function CreateProductWizard() {
           <button
             type="submit"
             disabled={isSubmitting || pending}
-            className="h-10 rounded-md bg-green-600 px-6 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-60"
+            className="h-10 rounded-md bg-red-600 px-6 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
           >
             {isSubmitting || pending ? "Saving..." : "Create Product"}
           </button>

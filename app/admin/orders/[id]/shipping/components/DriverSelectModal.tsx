@@ -128,11 +128,11 @@ toast.error(res?.message || "Failed to assign driver");
                       <span
                         className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ring-1 ${
                           available
-                            ? "bg-green-50 text-green-700 ring-green-200"
+                            ? "bg-red-50 text-red-700 ring-red-200"
                             : "bg-gray-50 text-gray-600 ring-gray-200"
                         }`}
                       >
-                        <span className={`h-2 w-2 rounded-full ${available ? "bg-green-500" : "bg-gray-400"}`} />
+                        <span className={`h-2 w-2 rounded-full ${available ? "bg-red-500" : "bg-gray-400"}`} />
                         {available ? "Available" : "Busy"}
                       </span>
                     </div>
@@ -161,7 +161,7 @@ toast.error(res?.message || "Failed to assign driver");
             <button
               onClick={onConfirm}
               disabled={!selected || pending}
-              className="inline-flex items-center gap-2 rounded-2xl bg-green-700 px-4 py-2 text-sm font-semibold text-white hover:bg-green-800 cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-2 rounded-2xl bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800 cursor-pointer disabled:opacity-50"
             >
               <Truck className="h-4 w-4" />
               {pending ? "Assigning..." : "Confirm Driver"}
