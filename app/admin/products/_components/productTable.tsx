@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { MoreVertical, Search } from "lucide-react";
+import {  Search } from "lucide-react";
 import { toast } from "react-toastify";
 import DeleteModal from "@/app/_componets/DeleteModal";
 import { handleDeleteProduct ,handleRestockProduct } from "@/lib/actions/product-action";

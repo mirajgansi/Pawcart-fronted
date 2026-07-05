@@ -108,3 +108,4 @@ export const ProductSchema = z.discriminatedUnion("productCategory", [
 
 export type ProductData = z.input<typeof ProductSchema>;
 export const ProductEditSchema = ProductSchema.options.map((s) => s.partial());
+export type ProductEditData = z.input<typeof ProductEditSchema>;

@@ -60,14 +60,7 @@ export default function ActionMenu({ id, editHref, onRestock, onDelete }: Props)
             Restock
           </button>
 
-          <Link
-            href={editHref}
-            onClick={() => setOpen(false)}
-            className="block w-full px-4 py-2 text-left text-sm font-semibold text-gray-700 hover:bg-gray-50"
-          >
-            Edit
-          </Link>
-
+         
           <button
             type="button"
             onClick={() => {
