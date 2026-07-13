@@ -1,5 +1,5 @@
 import { ToastContainer } from "react-toastify";
-
+import Image from "next/image";
 export default function AuthLayout({
   children,
 }: {
@@ -25,20 +25,35 @@ export default function AuthLayout({
       </div>
 
       {/* Logo header */}
-      <header className="pt-10 pb-2 text-center">
-        <h1
-          className="text-3xl font-extrabold tracking-tight"
-          style={{ color: "var(--interactive-primary)" }}
-        >
-          PawCart
-        </h1>
-        <p className="text-sm mt-1" style={{ color: "var(--text-secondary)" }}>
-          Premium Provisions for Your Finest Friends
-        </p>
-      </header>
+      <header className="pt-10 pb-1 text-center">
+  <div className="flex items-center justify-center gap-3">
+    <Image
+      src="/paw.png"
+      alt="PawCart Logo"
+      width={48}
+      height={48}
+      priority
+      className="object-contain"
+    />
+
+    <h1
+      className="text-3xl font-extrabold tracking-tight"
+      style={{ color: "var(--interactive-primary)" }}
+    >
+      PawCart
+    </h1>
+  </div>
+
+  <p
+    className="text-sm mt-2"
+    style={{ color: "var(--text-secondary)" }}
+  >
+    Premium Provisions for Your Finest Friends
+  </p>
+</header>
 
       {/* Main content — card is rendered by each page */}
-      <main className="grow flex items-center justify-center px-4 py-10">
+      <main className="grow flex items-center justify-center px-4 py-11">
         <div
           className="w-full max-w-120 rounded-2xl p-8 md:p-10 relative overflow-hidden"
           style={{
@@ -63,9 +78,7 @@ export default function AuthLayout({
           >
             PawCart
           </span>
-          <p className="text-xs" style={{ color: "var(--text-secondary)" }}>
-            © 2024 PawCart Premium Pet Provisions. All rights reserved.
-          </p>
+       
         </div>
 
         <nav className="flex flex-wrap justify-center gap-6">

@@ -416,7 +416,7 @@ export default function ProductDetailClient({
             <p className="mt-2 text-xl font-bold" style={{ color: "var(--text-brand)" }}>
               ${Number(product.price).toFixed(2)}
               <span className="ml-1 text-sm font-medium" style={{ color: "var(--text-secondary)" }}>
-                /{product.unit ?? "per kg"}
+                {product.unit ?? " "}
               </span>
             </p>
           </div>

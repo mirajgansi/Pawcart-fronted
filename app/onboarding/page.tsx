@@ -10,8 +10,8 @@ export default function OnboardingPage() {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center px-6 py-12 text-center"
-      style={{ backgroundColor: "var(--bg-page)" }}
     >
+  <div className="w-full max-w-md border-2 border-black rounded-3xl p-8 bg-white text-center shadow-sm">
 
       {/* Badge */}
       <div
@@ -123,7 +123,7 @@ export default function OnboardingPage() {
       
       </div>
 
-
+</div>
      
     </div>
   );

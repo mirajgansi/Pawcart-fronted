@@ -140,21 +140,7 @@ export default function LoginForm() {
             Google
           </button>
 
-          <button
-            type="button"
-            className="flex h-11 items-center justify-center gap-2 rounded-md border text-sm font-medium transition-colors"
-            style={{
-              borderColor: "var(--border-default)",
-              color: "var(--text-primary)",
-              backgroundColor: "var(--bg-surface)",
-            }}
-          >
-            {/* Apple SVG */}
-            <svg width="15" height="15" viewBox="0 0 814 1000" fill="currentColor">
-              <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 405.8 8 271.4 8 143.1 8 85.3 29.8 30.4 70.6 0c37.7-27.5 87.5-42.5 134.5-42.5 51.2 0 100.5 17.3 137.5 41.6 35.4 23.5 68.8 45.5 113.3 45.5 43 0 82.3-24.4 127.7-51.2 45.9-27.2 97.8-47.5 154.3-47.5 44.2 0 104.8 10.5 148.5 53.7z"/>
-            </svg>
-            Apple
-          </button>
+     
         </div>
 
         {/* Sign up link */}
