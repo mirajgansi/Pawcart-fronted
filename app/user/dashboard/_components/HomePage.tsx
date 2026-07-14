@@ -294,39 +294,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Footer ── */}
-      <footer className="mt-12 bg-[var(--color-primary-900)] text-[var(--color-primary-200)]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 grid grid-cols-2 md:grid-cols-4 gap-8">
-          <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-2xl">🐾</span>
-              <span className="text-white font-bold text-lg">PawCart</span>
-            </div>
-            <p className="text-xs leading-relaxed">
-              Premium pet care products delivered with love. Trusted by over 50,000 pet owners.
-            </p>
-          </div>
-          {[
-            { heading: "Shop",    links: ["Dog Food", "Cat Food", "Grooming", "Accessories"] },
-            { heading: "Help",    links: ["Track Order", "Returns", "FAQ", "Contact Us"] },
-            { heading: "Company", links: ["About", "Blog", "Careers", "Press"] },
-          ].map((col) => (
-            <div key={col.heading}>
-              <h4 className="text-white text-sm font-semibold mb-3">{col.heading}</h4>
-              <ul className="space-y-2">
-                {col.links.map((l) => (
-                  <li key={l}>
-                    <Link href="#" className="text-xs hover:text-[var(--color-primary-100)] transition">{l}</Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-        <div className="border-t border-[var(--color-primary-800)] py-4 text-center text-xs text-[var(--color-primary-400)]">
-          © 2025 PawCart. All rights reserved.
-        </div>
-      </footer>
+      
     </div>
   );
 }

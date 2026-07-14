@@ -5,6 +5,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import UserSocketClient from "../_componets/SocketBridge";
 import AuthBridge from "./_components/AuthBridge";
 import { CartProvider } from "@/context/cartContext";
+import Footer from "./_components/footer/Footer";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -24,7 +25,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <Header />
           {children}
                   </CartProvider>
-
+                  <Footer/>
         </AuthProvider>
       </body>
     </html>
