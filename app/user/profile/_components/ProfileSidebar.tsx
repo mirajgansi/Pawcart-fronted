@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Pencil, UserCog, LogOut, History } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 export type ProfileUser = {
   name: string;
@@ -14,7 +15,6 @@ export type ProfileUser = {
 export default function ProfileSidebar({
   user,
   onUpdateProfile = "/user/updateProfile",
-  onLogout,
   orderHistoryHref = "/user/orders",
   onEditAvatar,
 }: {
@@ -24,7 +24,12 @@ export default function ProfileSidebar({
   orderHistoryHref?: string;
   onEditAvatar?: () => void;
 }) {
+  const { logout } = useAuth();
   const router = useRouter();
+
+  const onLogout = () => {
+    logout();
+  };
 
   return (
     <div

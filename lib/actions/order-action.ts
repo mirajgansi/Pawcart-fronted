@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import {
   assignDriverToOrder,
+  buyNow,
   cancelOrder,
   createOrder,
   driverUpdateOrderStatus,
@@ -285,6 +286,49 @@ export async function handleDriverUpdateOrderStatus(
     return {
       success: false,
       message: error.message || "Failed to update status",
+    };
+  }
+}
+/**
+ * Buy Now: create order directly from a single product, skipping the cart.
+ */
+export async function handleBuyNow(payload: {
+  productId: string;
+  quantity: number;
+  shippingAddress?: {
+    userName?: string;
+    phone?: string;
+    address1?: string;
+    address2?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+  };
+  notes?: string;
+}): Promise<ActionResponse> {
+  try {
+    const res = await buyNow(payload);
+
+    if (!res?.success) {
+      return {
+        success: false,
+        message: res?.message || "Failed to place order",
+        issues: res?.issues,
+      };
+    }
+
+    revalidatePath("/orders");
+    revalidatePath("/user/orders");
+
+    return {
+      success: true,
+      message: res?.message || "Order placed",
+      data: res?.data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: getErrMsg(error, "Failed to place order"),
     };
   }
 }

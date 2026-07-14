@@ -100,7 +100,14 @@ export default function UpdateUserForm({ user }: { user: any }) {
     }
     onChange(file);
   };
-
+function resolveImageUrl(image?: string) {
+  if (!image) return null;
+  if (image.startsWith("http://") || image.startsWith("https://")) {
+    return image; // already absolute (e.g. Cloudinary)
+  }
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+  return `${base}${image.startsWith("/") ? "" : "/"}${image}`;
+}
   const clearImage = (onChange?: (file: File | undefined) => void) => {
     setPreviewImage(null);
     onChange?.(undefined);
@@ -209,25 +216,26 @@ export default function UpdateUserForm({ user }: { user: any }) {
                   <div className="relative h-28 w-28">
                     <div className="h-28 w-28 overflow-hidden rounded-full border-4 border-[#F0EDEC] bg-[#EDEAE8] shadow-sm">
                       {previewImage ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={previewImage}
-                          alt="Profile preview"
-                          className="h-full w-full object-cover"
-                        />
-                      ) : user?.image ? (
-                        <Image
-                          src={process.env.NEXT_PUBLIC_API_BASE_URL + user.image}
-                          alt="Profile"
-                          width={112}
-                          height={112}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <div className="h-full w-full flex items-center justify-center text-[#B3A8A6]">
-                          <User size={40} />
-                        </div>
-                      )}
+  // eslint-disable-next-line @next/next/no-img-element
+  <img
+    src={previewImage}
+    alt="Profile preview"
+    className="h-full w-full object-cover"
+  />
+) : user?.image ? (
+  <Image
+    src={resolveImageUrl(user.image)!}
+    alt="Profile"
+    width={112}
+    height={112}
+    className="h-full w-full object-cover"
+    unoptimized
+  />
+) : (
+  <div className="h-full w-full flex items-center justify-center text-[#B3A8A6]">
+    <User size={40} />
+  </div>
+)}
                     </div>
 
                     <button

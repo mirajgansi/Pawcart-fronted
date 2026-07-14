@@ -67,7 +67,6 @@ function fmt(n: number): string {
   return `Rs ${n.toFixed(2)}`;
 }
 
-/* ─── Sub-components ─────────────────────────────────────────────────── */
 
 /** Quantity stepper */
 function QtyControl({
@@ -272,6 +271,7 @@ export default function CartPage() {
   const [shippingAddress, setShippingAddress] = useState<
     ShippingAddress | undefined
   >();
+  const shippingFee = 0;
 
   /* fetch cart */
   const fetchCart = async () => {
@@ -482,11 +482,13 @@ export default function CartPage() {
       </div>
 
       <ShippingAddressModal
-        open={shippingOpen}
-        initialData={shippingAddress}
-        onClose={() => setShippingOpen(false)}
-        onSave={onConfirmShipping}
-      />
+  open={shippingOpen}
+  initialData={shippingAddress}
+  subtotal={subtotal}
+  shippingFee={shippingFee}
+  onClose={() => setShippingOpen(false)}
+  onSave={onConfirmShipping}
+/>
       </div>
     </main>
   );

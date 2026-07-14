@@ -129,13 +129,6 @@ export default function ShippingAddressModal({
                 selected={paymentMethod === "cod"}
                 onSelect={() => setPaymentMethod("cod")}
               />
-              <PaymentOption
-                icon={<Smartphone className="h-5 w-5" />}
-                title="eSewa / Khalti"
-                subtitle="Instant wallet transfer"
-                selected={paymentMethod === "wallet"}
-                onSelect={() => setPaymentMethod("wallet")}
-              />
             </div>
           </div>
 

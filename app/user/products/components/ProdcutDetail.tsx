@@ -15,13 +15,14 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { handleAddCartItem } from "@/lib/actions/cart-action";
-import { handleCreateOrder } from "@/lib/actions/order-action";
+import { handleBuyNow, handleCreateOrder } from "@/lib/actions/order-action";
 import { handleIncrementProductView } from "@/lib/actions/product-action";
 import {
   handleToggleFavoriteProduct,
   handleRateProduct,
   handleAddProductComment,
 } from "@/lib/actions/product-action";
+import ShippingAddressModal, { ShippingAddress } from "../../cart/components/shippingAddressModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -226,6 +227,7 @@ export default function ProductDetailClient({
   const [activeImage, setActiveImage] = useState(safeImages[0]);
 
   const [quantity, setQuantity] = useState(1);
+const [shippingOpen, setShippingOpen] = useState(false);
 
   const [expanded, setExpanded] = useState(false);
   const DESCRIPTION_LIMIT = 160;
@@ -246,6 +248,8 @@ export default function ProductDetailClient({
   useEffect(() => {
     setIsFav(!!product.isFavorite);
   }, [product.isFavorite]);
+
+  
 
   const initialAvg = Number(product.averageRating ?? 0);
   const [avgRating, setAvgRating] = useState(Number.isFinite(initialAvg) ? initialAvg : 0);
@@ -313,23 +317,32 @@ export default function ProductDetailClient({
     });
   };
 
-  const onShopNow = () => {
-    if (outOfStock) return;
-    startTransition(async () => {
-      try {
-        const res = await handleCreateOrder({ items: [{ productId: product._id, quantity }] } as any);
-        if (res?.success) {
-          toast.success("Order created!");
-          router.refresh();
-        } else {
-          toast.error(res?.message || "Failed to create order");
-        }
-      } catch (e: any) {
-        toast.error(e?.message || "Failed to create order");
-      }
-    });
-  };
+const onShopNow = () => {
+  if (outOfStock) return;
+  setShippingOpen(true);
+};
+const onConfirmShipping = (address: ShippingAddress) => {
+  startTransition(async () => {
+    try {
+      const res = await handleBuyNow({
+        productId: product._id,
+        quantity,
+        shippingAddress: address,
+      });
 
+      if (!res?.success) {
+        toast.error(res?.message || "Failed to place order");
+        return;
+      }
+
+      toast.success(res?.message || "Order placed!");
+      setShippingOpen(false);
+      router.push("/user/orders");
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to place order");
+    }
+  });
+};
   // ── Category-driven accordion content ─────────────────────────────────────
   const categoryLabel =
     PRODUCT_CATEGORY_LABELS[product.productCategory ?? ""] ??
@@ -553,7 +566,13 @@ export default function ProductDetailClient({
             </div>
           </div>
 
-         
+          <ShippingAddressModal
+            open={shippingOpen}
+            subtotal={Number(totalPrice)}
+            shippingFee={0}
+            onClose={() => setShippingOpen(false)}
+            onSave={onConfirmShipping}
+          />
         </div>
       </div>
     </div>

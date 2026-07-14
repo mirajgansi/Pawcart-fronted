@@ -96,7 +96,7 @@ export const API = {
     CREATE: "/api/orders",
     GET_MY: "/api/orders/me",
     GET_ONE: (id: string) => `/api/orders/${id}`,
-
+    BUY_NOW: "/api/orders/buy-now",
     // admin
     GET_ALL: "/api/orders/",
     UPDATE_STATUS: (id: string) => `/api/orders/${id}/status`,

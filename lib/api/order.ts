@@ -87,7 +87,32 @@ export const getAllOrders = async (params?: {
     );
   }
 };
-
+/* ---------------- BUY NOW ---------------- */
+export const buyNow = async (payload: {
+  productId: string;
+  quantity: number;
+  shippingAddress?: {
+    userName?: string;
+    phone?: string;
+    address1?: string;
+    address2?: string;
+    city?: string;
+    state?: string;
+    zip?: string;
+  };
+  notes?: string;
+}) => {
+  try {
+    const res = await axios.post(API.ORDER.BUY_NOW, payload);
+    return res.data;
+  } catch (error: any) {
+    throw new Error(
+      error?.response?.data?.message ||
+        error?.message ||
+        "Failed to place order",
+    );
+  }
+};
 /* ---------------- ADMIN: UPDATE ORDER STATUS ---------------- */
 export const updateOrderStatus = async (
   orderId: string,

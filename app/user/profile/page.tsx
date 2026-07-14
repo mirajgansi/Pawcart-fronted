@@ -4,9 +4,18 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { handleWhoami } from "@/lib/actions/auth-actions";
-import { handleGetMyOrders } from "@/lib/actions/order-action"; 
+import { handleGetMyOrders } from "@/lib/actions/order-action";
 import OrderCard, { Order } from "./_components/OrderCard";
 import ProfileSidebar, { ProfileUser } from "./_components/ProfileSidebar";
+
+function resolveImageUrl(image?: string) {
+  if (!image) return undefined;
+  if (image.startsWith("http://") || image.startsWith("https://")) {
+    return image;
+  }
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+  return `${base}${image.startsWith("/") ? "" : "/"}${image}`;
+}
 
 function OrderCardSkeleton() {
   return (
@@ -30,11 +39,12 @@ export default function ProfilePage() {
     handleWhoami()
       .then((res: any) => {
         const u = res?.data ?? res;
+        console.log("whoami user:", u); 
         if (u) {
           setUser({
             name: u.userName ?? u.username ?? "Pet Parent",
             subtitle: u.city ? `Pet Parent • ${u.city}` : undefined,
-            avatarUrl: u.avatar ?? u.profileImage,
+            avatarUrl: resolveImageUrl(u.image),
           });
         }
       })
@@ -52,11 +62,6 @@ export default function ProfilePage() {
       .finally(() => setLoadingOrders(false));
   }, []);
 
-  const onLogout = () => {
-    // wire to your actual logout action/cookie clear
-    router.push("/login");
-  };
-
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--bg-page)" }}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
@@ -67,7 +72,6 @@ export default function ProfilePage() {
             <ProfileSidebar
               user={user ?? { name: "Pet Parent" }}
               onUpdateProfile="/user/updateProfile"
-              onLogout={onLogout}
               orderHistoryHref="/user/orders"
             />
           )}
