@@ -68,7 +68,6 @@ export default function HomePage() {
   const [loadingTrending,    setLoadingTrending]    = useState(true);
   const [loadingBestSellers, setLoadingBestSellers] = useState(true);
 
-  const toggleFav  = (id: string) => setFavorites((prev) => ({ ...prev, [id]: !prev[id] }));
 
   // ── Fetch trending ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -182,7 +181,7 @@ export default function HomePage() {
       image: buildImageUrl(p.image),
       name: p.name,
       price: Number(p.price),
-      unit: p.unit ?? "per kg",
+      unit: p.unit ?? "",
       inStock: Number(p.inStock ?? 0),
       productCategory: p.productCategory,
       averageRating: p.averageRating,
@@ -226,7 +225,7 @@ export default function HomePage() {
       image: buildImageUrl(p.image),
       name: p.name,
       price: Number(p.price),
-      unit: p.unit ?? "per kg",
+      unit: p.unit ?? "",
       inStock: Number(p.inStock ?? 0),
       productCategory: p.productCategory,
     }}

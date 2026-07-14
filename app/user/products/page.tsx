@@ -15,8 +15,5 @@ export default async function Page() {
     notFound();
   }
 
-  // No functions passed as props — BestSellersClient fetches its own data
-  // via the server action directly, which is allowed since that action is
-  // itself marked "use server".
   return <BestSellersClient />;
 }

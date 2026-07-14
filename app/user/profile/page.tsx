@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { handleWhoami } from "@/lib/actions/auth-actions";
-import { handleGetMyOrders } from "@/lib/actions/order-action"; // ⚠️ confirm this exists — see note below
+import { handleGetMyOrders } from "@/lib/actions/order-action"; 
 import OrderCard, { Order } from "./_components/OrderCard";
 import ProfileSidebar, { ProfileUser } from "./_components/ProfileSidebar";
 

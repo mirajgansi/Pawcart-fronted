@@ -6,7 +6,8 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { handleAddCartItem } from "@/lib/actions/cart-action"; // adjust path
 import { handleGetFavoritesMe, handleToggleFavoriteProduct } from "@/lib/actions/product-action";
-
+import { toast } from "react-toastify";
+import { useCart } from "@/context/cartContext";
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type ProductCardProduct = {
@@ -91,9 +92,10 @@ export default function ProductCard({
   const [favLoading, setFavLoading] = useState(false);
   const [adding, setAdding]         = useState(false);
   const [justAdded, setJustAdded]   = useState(false);
+ const { incrementCart } = useCart();
 
   // ── Add to cart ──────────────────────────────────────────────────────────
-  async function handleAddToCart(e: React.MouseEvent) {
+   async function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
     if (inStock <= 0 || adding) return;
@@ -103,14 +105,16 @@ export default function ProductCard({
     setAdding(false);
 
     if (!res.success) {
-      console.error("Add to cart failed:", res.message);
-      // optionally trigger an error toast here
+      toast.error(res.message || "Failed to add to cart");
       return;
     }
 
+    incrementCart(1);
+    toast.success("Added to cart");
     setJustAdded(true);
-    setTimeout(() => setJustAdded(false), 1500); // brief "added" confirmation
+    setTimeout(() => setJustAdded(false), 1500);
   }
+
 
   // ── Toggle wishlist ──────────────────────────────────────────────────────
   async function handleToggleWishlist(e: React.MouseEvent) {
@@ -126,9 +130,12 @@ export default function ProductCard({
     setFavLoading(false);
 
     if (!res.success) {
-      console.error("Wishlist update failed:", res.message);
       setIsFavorite(!next); // revert on failure
+      toast.error(res.message || "Failed to update wishlist");
+      return;
     }
+
+    toast.success(next ? "Added to wishlist" : "Removed from wishlist");
   }
 useEffect(() => {
     let active = true;

@@ -4,6 +4,7 @@ import { handleWhoami } from "@/lib/actions/auth-actions";
 import { AuthProvider } from "@/context/AuthContext";
 import UserSocketClient from "../_componets/SocketBridge";
 import AuthBridge from "./_components/AuthBridge";
+import { CartProvider } from "@/context/cartContext";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -16,10 +17,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="antialiased">
         <AuthProvider>
+                  <CartProvider>
+
           <AuthBridge user={user} />
           <UserSocketClient />
           <Header />
           {children}
+                  </CartProvider>
+
         </AuthProvider>
       </body>
     </html>
